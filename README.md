@@ -1,6 +1,6 @@
 
-       FPF - Frame Processing Framework
-===============================================
+#      FPF - Frame Processing Framework
+
 
 FPF is a flexible framework of objects that can be used to construct
 different processing algorithms for frame organized data streams.
@@ -11,6 +11,10 @@ it was intended to build simple tools to conduct an inventory, quality control
 and initial processing steps of data downlinked from EOS missions (TERRA
 and AQUA satellites).
 
+FPF is free software.  You may copy, distribute, and modify it under
+the terms of the License contained in the file LICENCE distributed
+with this source code and binary packages.  This license is the same as 
+the MIT/X Consortium license
 
 ## Installation
 

@@ -1,6 +1,16 @@
 #ifndef CINPUTSTREAM_SOCKET_H
 #define CINPUTSTREAM_SOCKET_H
 
+#ifdef NO_SOCKETS
+// this is the dummy staff to work without this object at all
+
+#include "fpf.h"
+#include "class_factory.h"
+
+#define  FACTORY_CINPUTSTREAM_SOCKET(c)
+
+#else //NO_SOCKETS
+
 #include "fpf.h"
 #include "class_factory.h"
 
@@ -36,5 +46,5 @@ class CInputStream_Socket : public IInputStream
 
 };
 
-
+#endif //NO_SOCKETS
 #endif // CINPUTSTREAM_SOCKET_H
