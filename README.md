@@ -16,6 +16,33 @@ the terms of the License contained in the file LICENCE distributed
 with this source code and binary packages.  This license is the same as 
 the MIT/X Consortium license
 
+## Fast start
+
+This is a very brief introduction for impatient who just need 
+to try *FPF* tools to process TERRA (or AQUA) raw data up to Level-0.
+
+**Step 1.** Download latest binary release package for your operating system
+(Linux or Windows) from Github page at https://github.com/alxndrsh/fpf/releases
+Unpack the archive in any folder where you want to keep the tools.
+No special installation procedure required for running.
+
+**Step 2.** To process AQUA(and TERRA) DB raw telemetry stream (CADU sequence)
+you may use supplied configuration file raw2pds_terra_aqua.ini. 
+This configuration fie build a full required processing chain using a 
+number of FPF framework objects. 
+To run if with your file (in the following example /data/terra/TERRA_000.raw)
+you should call it from command  line (having the folder where you have 
+placed the FPF as current):
+
+```
+fpf -i raw2pds_terra_aqua.ini /data/terra/TERRA_000.raw
+```
+
+Output PDS file will be written with name /data/terra/TERRA_000.raw.pds
+(just appending .pds extension to the input file name). 
+ 
+
+
 ## Installation
 
 You may get either ready to run binaries or source code.
