@@ -15,7 +15,7 @@ Development of FPF was kindly supported by the Space Science and Engineering Cen
 (University of Wisconsin-Madison), RBC Signals, R&D Center ScanEx
 
 FPF is free software.  You may copy, distribute, and modify it under
-the terms of the License contained in the file LICENCE distributed
+the terms of the License contained in the file LICENSE distributed
 with this source code and binary packages.  This license is the same as 
 the MIT/X Consortium license
 
@@ -100,9 +100,9 @@ of the provided makefiles better suits your needs:
 - *Makefile* - most generic makefile used for development builds on Linux/GCC.
    It has all the classes and all features switched on. Recommended for first try.
 
-- *Makefile_nocurl* - Linux/GCC makefile configured for build without CURL library.
+- *Makefile_nocurl* - Linux/GCC makefile configured for build without cURL library.
   ( USE_CURL is not defined). May be used if  your system has not libcurl installed
-   or you have troubles linking with it. Without CURL some networking and online communication
+   or you have troubles linking with it. Without cURL some networking and online communication
    features of some processing nodes may be disabled.
 
 - *Makefile_win* - - Makefile to cross-build FPF on Linux to get executable
