@@ -39,6 +39,7 @@ enum t_dump_formats { FORMAT_LINES_SHORT = 1 , FORMAT_LINES_LONG, FORMAT_BLOCK }
         t_dump_formats dump_format ;
         bool use_hex;
         bool dump_times;
+        int tf_version;
         string outfile_name;
         unsigned long c_dumped;
         //

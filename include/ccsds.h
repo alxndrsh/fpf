@@ -103,6 +103,7 @@ struct PACKED_GCC CADU
 
     };
 
+static inline t_uint16  CADU_GET_TF_VERSION(BYTE* p) { return (t_uint16)(  (p[0] & 0xC0) >>6)  ;}
 static inline t_uint16  CADU_GET_PACKET_OFFSET(BYTE* p) { return (t_uint16)( ( ( p[10] & 0x07) << 8 ) | (p[11]) );}
 static inline t_uint16  CADU_GET_SPACECRAFT(BYTE* p) { return (t_uint16)( ( ( p[4] & 0x3FUL) << 2 ) | ((p[5] & 0xC0) >> 6) );}
 static inline t_uint16  CADU_GET_VCID(BYTE* p) { return (t_uint16)( p[5] & 0x3F  );}
@@ -111,7 +112,8 @@ static inline t_uint32  CADU_GET_VCCOUNTER(BYTE* p) { return (t_uint32)( 0UL | (
 
 static inline t_uint16  TFV1_GET_PACKET_OFFSET(BYTE* p) { return (t_uint16)( ( ( p[10] & 0x07) << 8 ) | (p[11]) );}
 static inline t_uint16  TFV1_GET_SPACECRAFT(BYTE* p) { return (t_uint16)( ( ( p[4] & 0x3FUL) << 2 ) | ((p[5] & 0xC0) >> 6) );}
-static inline t_uint16  TFV1_GET_VCID(BYTE* p) { return (t_uint16)( p[6] );}
+static inline t_uint16  TFV1_GET_VCID(BYTE* p) { return (t_uint16)( (p[5] & 0x07) >> 1 );}
+static inline t_uint32  TFV1_GET_MCCOUNTER(BYTE* p) { return (t_uint32)( p[6]); } //master channel counter
 static inline t_uint32  TFV1_GET_VCCOUNTER(BYTE* p) { return (t_uint32)( p[7]); }
 
 

@@ -96,7 +96,9 @@ bool CInputStream_Socket::init(t_ini& ini, string& init_name)
     struct sockaddr_in serv_addr;
     listen_socket = socket(AF_INET, SOCK_STREAM, 0);
     setsockopt(listen_socket, SOL_SOCKET, SO_REUSEADDR, &g_reuseaddr, sizeof(g_reuseaddr));
+#ifdef SO_REUSEPORT
     setsockopt(listen_socket, SOL_SOCKET, SO_REUSEPORT, &g_reuseaddr, sizeof(g_reuseaddr));
+#endif
     bzero((char *) &serv_addr, sizeof(serv_addr));
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_addr.s_addr = INADDR_ANY;

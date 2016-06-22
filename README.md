@@ -11,6 +11,9 @@ it was intended to build simple tools to conduct an inventory, quality control
 and initial processing steps of data downlinked from EOS missions (TERRA
 and AQUA satellites).
 
+Development of FPF was kindly supported by the Space Science and Engineering Center
+(University of Wisconsin-Madison), RBC Signals, R&D Center ScanEx
+
 FPF is free software.  You may copy, distribute, and modify it under
 the terms of the License contained in the file LICENCE distributed
 with this source code and binary packages.  This license is the same as 
@@ -35,7 +38,7 @@ you should call it from command  line (having the folder where you have
 placed the FPF as current):
 
 ```
-fpf -i raw2pds_terra_aqua.ini /data/terra/TERRA_000.raw
+./fpf -i raw2pds_terra_aqua.ini /data/terra/TERRA_000.raw
 ```
 
 Output PDS file will be written with name /data/terra/TERRA_000.raw.pds
@@ -45,14 +48,14 @@ Output PDS file will be written with name /data/terra/TERRA_000.raw.pds
 
 ## Installation
 
-You may get either ready to run binaries or source code.
+You may install FPF using either ready to run binaries or source code.
 
 ### Binary distribution
 
 For each milestone release binary distribution
 of the framework engine is provided for Linux-x64 and Windows operating
-systems. The binary packages, packed as zIp or tar+gz archives, contain
-a single engine executable file, a set of sample chain configuration
+systems. The binary packages, packed as zip or tar+gz archives, contain
+an engine executable file, a set of sample chain configuration
 ini-files and a few documenting text files. Deployment of the binary release
 is very trivial - just place the files anywhere you think it would be
 convenient for you to find them. You may test if everything is OK and the
@@ -61,6 +64,12 @@ you terminal window.  Running without arguments it will print the version
 line and then will complain that no configuration file is given.
 Spend some time to look through this manual to get familiar with the system
 and learn how you may control the engine and construct usable processing chains.
+
+Some FPF blocks depend on the cURL library, and thus the engine executable does too.
+The cURL libraries should be installed on you system. On Linuxes it is widely used
+and usually are available from distro repositories. If you have trouble when
+run time linking to cURL you may try a simplified version ( *fpf_nocurl* ) at a price
+of loosing some minor functionality.
 
 ### Building from the source code
 
@@ -161,6 +170,15 @@ and what you may accomplish with all this staff, we encourage you to
 look further though the description of classes already implemented in
 the framework and try some sample chains built to solve real world
 tasks.
+
+To glue these objects into a useful working program FPF project provides 
+an engine executable (*fpf* on Linux or *fpf.exe* on Windows). This console
+program lets one to build ad execute a processing chain according  to a given
+configuration file. Configuration file is formatted asa usual INI file with each section
+containing parameters of one FPF object.  Configuration file is given as a value 
+for *-i* command line argument. Last argument in the command line may be used
+as a substitution value for a placeholder string "$INPUTFILE$" used anywhere in 
+the configuration file text.
 
 ## Framework building blocks manual
 

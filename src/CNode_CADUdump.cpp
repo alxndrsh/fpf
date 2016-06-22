@@ -41,6 +41,7 @@ CNode_CADUdump::CNode_CADUdump()
     c_counter = 0; c_dumped = 0;
     dump_times = false;
     trace_every = 1;
+    tf_version = 0;
 }
 
 CNode_CADUdump::~CNode_CADUdump()
@@ -129,9 +130,35 @@ void CNode_CADUdump::do_frame_processing(CFrame* pf)
     //
     CADU* cadu = (CADU*) pf->pdata;
     BYTE* pcadu =  pf->pdata;
+
+    //--determine TF version
+
+    unsigned int sc;
+    unsigned int vcid;
+    unsigned int vccount;
+    unsigned int mccount;
+    int frame_tf_version = CADU_GET_TF_VERSION(pcadu); //TODO - add explicit setup
+    if (tf_version>0) {frame_tf_version = tf_version;}
+    switch (frame_tf_version)
+    {
+        case 0:
+            sc = TFV1_GET_SPACECRAFT(pcadu);
+            vcid = TFV1_GET_VCID(pcadu);
+            vccount = TFV1_GET_VCCOUNTER(pcadu);
+            mccount = TFV1_GET_MCCOUNTER(pcadu);
+            break;
+        case 1:
+            sc = CADU_GET_SPACECRAFT(pcadu);
+            vcid = CADU_GET_VCID(pcadu);
+            vccount = TFV1_GET_VCCOUNTER(pcadu);
+             mccount = 0;
+            break;
+        default:
+            FPF_ASSERT( false,"Invalid tf_version")
+    }
+
     // -- prepare values
     string spacecraft = SPACECRAFT_NAMES[(int)(CADU_GET_SPACECRAFT(pcadu))];
-    int vcid = CADU_GET_VCID(pcadu);
     string vcname = VCID_NAMES[vcid];
     string crc = "NA";
     if (pf->crc_ok == FRAME_CRC_OK) {crc = "OK";}
@@ -148,6 +175,8 @@ void CNode_CADUdump::do_frame_processing(CFrame* pf)
     { ptm = gmtime(&(pf->obtime));
     strftime (sz,sizeof(sz),"%Y-%m-%d %H:%M:%S",ptm);
     ob_time=sz;}
+
+
     //
     switch (dump_format )
     {
@@ -156,9 +185,9 @@ void CNode_CADUdump::do_frame_processing(CFrame* pf)
         *output<<setw(8)<<right;
         *output<<"  Sync Marker:\t"<< hex<<cadu->ASM<<endl;
         *output<<"      version:\t"<<dec<<setw(8)<<right<< (int)(cadu->version) <<" [0x"<<hex<< (int)(cadu->version)<<"]"<<endl;
-        *output<<"   spacecraft:\t"<<dec<<setw(8)<<right<< CADU_GET_SPACECRAFT(pcadu)  <<" [0x"<<hex<< (int)(CADU_GET_SPACECRAFT(pcadu))<<"]"  <<"  ("<<spacecraft<<")"<<endl;
-        *output<<"         VCID:\t"<<dec<<setw(8)<<right<<CADU_GET_VCID(pcadu) <<" [0x"<<hex<<CADU_GET_VCID(pcadu)<<"]"<<" ("<<vcname<<")"<<endl;
-        *output<<"   VCDU count:\t"<<dec<<setw(9)<<right<< CADU_GET_VCCOUNTER(pcadu) <<" [0x"<<hex<<CADU_GET_VCCOUNTER(pcadu)<<"]"<<endl;
+        *output<<"   spacecraft:\t"<<dec<<setw(8)<<right<< sc  <<" [0x"<<hex<< (int)(sc)<<"]"  <<"  ("<<spacecraft<<")"<<endl;
+        *output<<"         VCID:\t"<<dec<<setw(8)<<right<<vcid <<" [0x"<<hex<<vcid<<"]"<<" ("<<vcname<<")"<<endl;
+        *output<<"   VCDU count:\t"<<dec<<setw(9)<<right<< vccount <<" [0x"<<hex<<vccount<<"]"<<endl;
         *output<<"          CRC:\t"<<crc<< ", err.bits: "<<dec<<setw(8)<<right<< pf->bit_errors <<endl;
         if (dump_times)
         {
@@ -169,9 +198,9 @@ void CNode_CADUdump::do_frame_processing(CFrame* pf)
         break;
     case FORMAT_LINES_SHORT:
         if (use_hex) { *output << hex;}
-        *output<<name<<"-CADU ["<<setw(8)<<right<<c_counter<<"] at ["<<setw(10)<<pf->stream_pos<<"]  sc:"<<setw(4)<<right<< CADU_GET_SPACECRAFT(pcadu)
-                <<"\tVCID:"<<setw(4)<<right<< CADU_GET_VCID(pcadu)
-                <<"\tcount:"<<setw(9)<<right<< CADU_GET_VCCOUNTER(pcadu)
+        *output<<name<<"-CADU ["<<setw(8)<<right<<c_counter<<"] at ["<<setw(10)<<pf->stream_pos<<"]  sc:"<<setw(4)<<right<< sc
+                <<"\tVCID:"<<setw(4)<<right<< vcid
+                <<"\tcount:"<<setw(9)<<right<< vccount
                 <<"\tCRC:"<<crc<< ", err: "<<dec<<setw(3)<<right<< pf->bit_errors;
         if (dump_times)
         {
@@ -181,9 +210,10 @@ void CNode_CADUdump::do_frame_processing(CFrame* pf)
                *output <<endl;
                 break;
     case FORMAT_LINES_LONG:
-        *output<<name<<"-CADU ["<<setw(8)<<right<<c_counter<<"]["<<setw(8)<<right<<pf->cframe<<"] at ["<<setw(10)<<pf->stream_pos<<"]  sc:"<<setw(4)<<right<< CADU_GET_SPACECRAFT(pcadu) << "("<<spacecraft<<")"
-                <<"\tVCID:"<<setw(4)<<right<< CADU_GET_VCID(pcadu)<<"("<<vcname<<")"
-                <<"\tcount:"<<setw(9)<<right<< CADU_GET_VCCOUNTER(pcadu)
+        *output<<name<<"-CADU ["<<setw(8)<<right<<c_counter<<"]["<<setw(8)<<right<<pf->cframe<<"] at ["<<setw(10)<<pf->stream_pos<<"]  sc:"<<setw(4)<<right<< sc << "("<<spacecraft<<")"
+                <<"\tVCID:"<<setw(4)<<right<< vcid<<"("<<vcname<<")";
+        if (frame_tf_version == 0) { *output<<"\tmccount:"<<setw(9)<<right<< mccount ;}
+         *output<<"\tcount:"<<setw(9)<<right<< vccount
                 <<"\tCRC:"<<crc<< ", err: "<<dec<<setw(3)<<right<< pf->bit_errors;
         if (dump_times)
         {
