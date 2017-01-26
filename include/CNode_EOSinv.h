@@ -65,7 +65,7 @@ class CNode_EOSinv : public INode
     //
     void do_frame_processing(CFrame* pf);
     void build_file_name(CFrame* pf);
-    bool online_post(string str_report,string url);
+    bool online_post(string str_report,string url,bool print_responce);
 
     string post_to_url;
     string post_to_url_nrt;

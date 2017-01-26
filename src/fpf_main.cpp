@@ -22,6 +22,7 @@ using namespace std;
 #define INI_MAIN_FRAMESOURCE  "frame_source"
 //common substitutes
 #define  PARAM_INPUT_FILE   "INPUTFILE"
+#define  PARAM_OUTPUT_FILE  "OUTPUTFILE"
 
 
 //exit codes
@@ -43,12 +44,14 @@ int main(int argc, char* argv[])
     //------- get command line options ----------------
     int carg;
     size_t eqpos;string sx;
-    while ((carg = getopt (argc, argv, "D:i:tcs")) != -1)
+    while ((carg = getopt (argc, argv, "o:D:i:tcs")) != -1)
     switch (carg)
       {
       case 'i': // config ini file
         ini_fn = optarg;
         break;
+      case 'o' : //output file
+        map_parameters[PARAM_OUTPUT_FILE] = optarg;
       case 'D': // definition of custom parameters
         sx = optarg;
         eqpos = sx.find_first_of("=");

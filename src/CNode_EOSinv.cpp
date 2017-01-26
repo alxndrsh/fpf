@@ -195,7 +195,7 @@ void CNode_EOSinv::close(void)
     if (! post_to_url.empty())
     {
         *fpf_trace <<"<= " MY_CLASS_NAME "("<<name<<") online post of inventory report\n";
-        online_post(full_report,post_to_url);
+        online_post(full_report,post_to_url,true);
     }
     if (curl) { curl_easy_cleanup(curl); curl = NULL;}
 #endif
@@ -319,7 +319,7 @@ void CNode_EOSinv::do_frame_processing(CFrame* pf)
             //
             if (! post_to_url_nrt.empty())
             {
-                if(!online_post(report_header + ss_slice.str(),post_to_url_nrt))
+                if(!online_post(report_header + ss_slice.str(),post_to_url_nrt, c_slices == 1))
                 {
                     post_to_url_nrt = ""; //no more attempts to post nrt reports
                 }
@@ -382,7 +382,7 @@ static size_t write_callback(char *in, size_t xsize, size_t nmemb, void *data)
   return rsize;
 }
 
-bool CNode_EOSinv::online_post(string str_report,string url)
+bool CNode_EOSinv::online_post(string str_report,string url,bool print_responce=false)
 {
 #ifdef USE_CURL
     //
@@ -423,7 +423,10 @@ bool CNode_EOSinv::online_post(string str_report,string url)
       curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
       if (response_code == 200)
       {
-          *fpf_trace << "-inv.report upload, OK, 200\n";
+        if(print_responce) //print positive responce only if requested
+        {
+          *fpf_info << "= " MY_CLASS_NAME "("<<name<<") posted OK: ------\n" <<hstring.response <<"\n----------\n"; ;
+        }
       }else
       {
           *fpf_error << "-inv.report upload failed with code "<<response_code<<"\n"<<hstring.response <<"\n----------\n";

@@ -3,7 +3,10 @@
 #include <unistd.h>
 #include <cerrno>
 #include <sys/types.h>
+
+#ifdef HAS_WINSOCK
 #include <winsock2.h>
+#endif // HAS_WINSOCK
 
 #ifdef HAS_SOCKET_H
 #include <netinet/in.h>
