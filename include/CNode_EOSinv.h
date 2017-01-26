@@ -17,7 +17,9 @@ History:
 #include "fpf.h"
 
 #ifdef USE_CURL
+extern "C" {
 #include <curl/curl.h>
+}
 #endif
 
 #define  FACTORY_CNODE_EOSINV(c) FACTORY_ADD_NODE(c,CNode_EOSinv)

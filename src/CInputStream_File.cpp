@@ -20,6 +20,7 @@ History:
 #define INI_START_OFFSET    "start_offset"
 #define INI_RT  "real_time"
 #define INI_BYTES_TO_READ   "read_bytes"
+#define INI_RT_TIMEOUT   "rt_timeout"
 
 #define RT_SLEEP_AFTER_PARTIAL  100000
 #define RT_SLEEP_AFTER_ZERO  1000000
@@ -34,6 +35,8 @@ CInputStream_File::CInputStream_File()
     is_rt = false;
     bytes_to_read = 0;
     read_total = 0;
+    rt_timeout = 11;
+
 }
 
 CInputStream_File::~CInputStream_File()
@@ -73,6 +76,11 @@ bool CInputStream_File::init(t_ini& ini, string& init_name)
     //
     is_rt = false;
     if (conf[INI_RT] == INI_COMMON_VAL_YES) {is_rt = true;}
+    if (conf.find(INI_RT_TIMEOUT) != conf.end())
+    {
+        string s = conf[INI_RT_TIMEOUT];
+        rt_timeout = strtoll(s.c_str(),NULL,10);
+    }
     // -- choose an input file name
     if (conf.find(INI_COMMON_INPUT_FILE) != conf.end())
     {
@@ -163,8 +171,8 @@ unsigned int CInputStream_File::read(BYTE* pbuff, size_t read_bytes, int& ierror
        {
             usleep(RT_SLEEP_AFTER_PARTIAL); cout<<"."<<endl;
        }else
-       {// its a zero read, wait if some thing will be appended
-           for (int attempt =0; attempt < RT_SLEEP_RETRIES_AFTER_ZERO; attempt++)
+       {// its a zero read, wait if something will be appended
+           for (int attempt =0; attempt < rt_timeout; attempt++)
            {
                usleep(RT_SLEEP_AFTER_ZERO);  cout<<"*"<<endl;
                readed = fread (pbuff,1,bytes_to_read,file);
@@ -174,8 +182,9 @@ unsigned int CInputStream_File::read(BYTE* pbuff, size_t read_bytes, int& ierror
                    ierror = 0;
                    return readed;
                }
-               //elst, try again
+               //else, try again
            }
+           *fpf_trace<<"= " MY_CLASS_NAME "("<<name<<") zero reads in RT mode timeout reached\n";
            return 0;
        }
 

@@ -30,6 +30,7 @@ History:
 #include "CNode_EOSPdump.h"
 #include "CNode_RS.h"
 #include "CNode_EOSinv.h"
+#include "CNode_RSSPipe.h"
 #include "CNode_Splitter.h"
 #include "CNode_SCTrigger.h"
 #include "CNode_TFstat.h"
@@ -82,6 +83,7 @@ INode* new_node(std::string& classname)
         FACTORY_CNODE_EOSPDUMP(classname);
         FACTORY_CNODE_RS(classname);
         FACTORY_CNODE_EOSINV(classname);
+        FACTORY_CNODE_RSSPIPE(classname);
         FACTORY_CNODE_SPLITTER(classname);
         FACTORY_CNODE_SCTRIGGER(classname);
         FACTORY_CNODE_TFSTAT(classname);

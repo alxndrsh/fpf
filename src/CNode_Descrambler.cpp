@@ -84,7 +84,7 @@ bool CNode_Descrambler::init(t_ini& ini, string& init_name, CChain* pchain_arg)
 	{
 		if (!no_next_node) //look like a config error
 		{
-			*fpf_error << "ERROR:  "MY_CLASS_NAME"::init("<<init_name<<") failed to create next node ["<< conf[INI_COMMON_NEXT_NODE] <<"]\n";
+			*fpf_error << "ERROR:  "MY_CLASS_NAME"::init("<< init_name <<") failed to create next node ["<< conf[INI_COMMON_NEXT_NODE] <<"]\n";
 			return false;
 		}
 	}

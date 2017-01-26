@@ -66,7 +66,7 @@ bool CNode_Splitter::init(t_ini& ini, string& init_name, CChain* pchain_arg)
     //build next node
     bool no_next_node;  pnext_node = get_next_node(ini,name,&no_next_node);
 	if (pnext_node == NULL)
-	{if (!no_next_node) {*fpf_error << "ERROR:  "MY_CLASS_NAME"::init("<<init_name<<") failed to create next node ["<< conf[INI_COMMON_NEXT_NODE] <<"]\n";	return false;	}}
+	{if (!no_next_node) {*fpf_error << "ERROR:  " MY_CLASS_NAME "::init("<<init_name<<") failed to create next node ["<< conf[INI_COMMON_NEXT_NODE] <<"]\n";	return false;	}}
     else  {  if (! pnext_node->init(ini,conf[INI_COMMON_NEXT_NODE],pchain_arg))  { return false;}   }
      // build side node
     string side_node_name = conf[INI_SIDE_NODE];
@@ -75,7 +75,7 @@ bool CNode_Splitter::init(t_ini& ini, string& init_name, CChain* pchain_arg)
          side_node = new_node(ini,side_node_name);
          if (side_node == NULL)
          {
-             *fpf_error << "ERROR:"MY_CLASS_NAME"::init("<<init_name<<") failed to create side node ["<< side_node_name <<"]\n";
+             *fpf_error << "ERROR:" MY_CLASS_NAME "::init("<<init_name<<") failed to create side node ["<< side_node_name <<"]\n";
              return false;
          }else
          {

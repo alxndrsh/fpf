@@ -80,10 +80,10 @@ CNode_EOSinv::CNode_EOSinv()
 
 CNode_EOSinv::~CNode_EOSinv()
 {
-    if (curl) 
-    { 
+    if (curl)
+    {
 #ifdef USE_CURL
-		curl_easy_cleanup(curl); 
+		curl_easy_cleanup(curl);
 #endif
 		curl = NULL;
 	}
@@ -167,7 +167,7 @@ bool CNode_EOSinv::init(t_ini& ini, string& init_name, CChain* pchain_arg)
     //build next node
     bool no_next_node;  pnext_node = get_next_node(ini,name,&no_next_node);
 	if (pnext_node == NULL)
-	{if (!no_next_node) {*fpf_error << "ERROR:  "MY_CLASS_NAME"::init("<<init_name<<") failed to create next node ["<< conf[INI_COMMON_NEXT_NODE] <<"]\n";	return false;	}}
+	{if (!no_next_node) {*fpf_error << "ERROR:  " MY_CLASS_NAME "::init("<<init_name<<") failed to create next node ["<< conf[INI_COMMON_NEXT_NODE] <<"]\n";	return false;	}}
     else  {  if (! pnext_node->init(ini,conf[INI_COMMON_NEXT_NODE],pchain_arg))  { return false;}   }
     //
     string str_lazy = (lazy_create)? "(lazy) " : "";
@@ -346,11 +346,13 @@ struct hstring_t //helper structure to pass to CURL read callback, keeps track o
         string* pstr;
         size_t len;
         size_t pos;
+        string response;
         hstring_t( string *arg_pstr)
         {
             pstr = arg_pstr;
             len = pstr->length();
             pos = 0;
+            response = "";
         };
         size_t read(char* ptr,size_t nsize)
         {
@@ -360,12 +362,24 @@ struct hstring_t //helper structure to pass to CURL read callback, keeps track o
             memcpy(ptr,pstr->c_str() + pos, to_copy);
             pos += to_copy;
             return (size_t)to_copy;
+        };
+        void save_responce(char* ptr,size_t nsize) //keep response always \0 terminated
+        {
+            response += string(ptr,nsize);
         }
 } ;
 
 static size_t read_callback(void *ptr, size_t nsize, size_t nmemb, void *data)
 { // CURL read callback
   return ((hstring_t*)data)->read((char*)ptr,nsize*nmemb);
+}
+
+static size_t write_callback(char *in, size_t xsize, size_t nmemb, void *data)
+{
+  size_t rsize;
+  rsize = xsize * nmemb;
+  ((hstring_t*)data)->save_responce((char*)in,rsize);
+  return rsize;
 }
 
 bool CNode_EOSinv::online_post(string str_report,string url)
@@ -391,6 +405,11 @@ bool CNode_EOSinv::online_post(string str_report,string url)
     curl_easy_setopt(curl, CURLOPT_READFUNCTION, read_callback);
     curl_easy_setopt(curl, CURLOPT_READDATA, &hstring);
     curl_easy_setopt(curl, CURLOPT_INFILESIZE, hstring.len);//curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, str_report.length());
+    //accept response
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &hstring);
+    char errbuf[CURL_ERROR_SIZE];
+    curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, errbuf);
     //make the call
     CURLcode res = curl_easy_perform(curl);
     // Check for errors
@@ -399,7 +418,17 @@ bool CNode_EOSinv::online_post(string str_report,string url)
       return false;
     }
     else {
-      *fpf_trace << "-inv.report upload, OK\n";
+
+      long response_code;
+      curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
+      if (response_code == 200)
+      {
+          *fpf_trace << "-inv.report upload, OK, 200\n";
+      }else
+      {
+          *fpf_error << "-inv.report upload failed with code "<<response_code<<"\n"<<hstring.response <<"\n----------\n";
+          return false;
+      }
       return true;
     }
 

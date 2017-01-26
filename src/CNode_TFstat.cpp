@@ -116,7 +116,7 @@ bool CNode_TFstat::init(t_ini& ini, string& init_name, CChain* pchain_arg)
     //build next node
     bool no_next_node;  pnext_node = get_next_node(ini,name,&no_next_node);
 	if (pnext_node == NULL)
-	{if (!no_next_node) {*fpf_error << "ERROR:  "MY_CLASS_NAME"::init("<<init_name<<") failed to create next node ["<< conf[INI_COMMON_NEXT_NODE] <<"]\n";	return false;	}}
+	{if (!no_next_node) {*fpf_error << "ERROR:  " MY_CLASS_NAME "::init("<<init_name<<") failed to create next node ["<< conf[INI_COMMON_NEXT_NODE] <<"]\n";	return false;	}}
     else  {  if (! pnext_node->init(ini,conf[INI_COMMON_NEXT_NODE],pchain_arg))  { return false;}   }
     //
     string str_lazy = (lazy_create)? "(lazy) " : "";
@@ -177,7 +177,7 @@ void CNode_TFstat::do_frame_processing(CFrame* pf)
 {
     c_counter++;
     //
-    BYTE *tfh = pf->pdata;
+
     // -- prepare values
     if ((output == NULL) && lazy_create && (c_counter == 1)) //do only once
     {//open it now

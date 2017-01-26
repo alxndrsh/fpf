@@ -1,6 +1,5 @@
 #include "ccsds.h"
 
-
 const std::map<int, string>::value_type x[] =
 {
     std::make_pair( 11, "METOPA" ),

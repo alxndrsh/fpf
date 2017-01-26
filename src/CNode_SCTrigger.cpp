@@ -176,7 +176,7 @@ void CNode_SCTrigger::init_further_chain(int isat)
     pnext_node = new_node(ini_copy, next_node_name);
 	if (pnext_node == NULL)
 	{
-	    *fpf_error << "ERROR:  "MY_CLASS_NAME"::init_further_chain("<<next_node_name<<") failed to create next node ["<< next_node_name <<"]\n";
+	    *fpf_error << "ERROR:  " MY_CLASS_NAME "::init_further_chain("<<next_node_name<<") failed to create next node ["<< next_node_name <<"]\n";
 	    return;
     }
     else

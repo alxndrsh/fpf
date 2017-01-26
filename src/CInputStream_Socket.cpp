@@ -3,10 +3,14 @@
 #include <unistd.h>
 #include <cerrno>
 #include <sys/types.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
+#include <winsock2.h>
+
+#ifdef HAS_SOCKET_H
 #include <netinet/in.h>
 #include <netdb.h>	//hostent
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#endif // HAS_SOCKET_H
 
 #include "CInputStream_Socket.h"
 

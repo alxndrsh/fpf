@@ -52,7 +52,7 @@ bool  CFrameSource_PDS::init(t_ini& ini, string& init_name)
     is_initialized = false;
     if (ini.find(init_name) == ini.end())
     {
-        *fpf_error<<"ERROR: "MY_CLASS_NAME"::init(): init failed, no section ["<<init_name<<"] in the ini file\n";
+        *fpf_error<<"ERROR: " MY_CLASS_NAME "::init(): init failed, no section ["<<init_name<<"] in the ini file\n";
         return false;
     }
     name = init_name;
@@ -123,7 +123,7 @@ try
     input_buffer = new BYTE[buff_size];
     if (input_buffer == NULL)
     {
-        *fpf_warn<< "!! "MY_CLASS_NAME"::init(): failed allocation of frame buffer of size "<<buff_size<<" bytes\n";
+        *fpf_warn<< "!! " MY_CLASS_NAME "::init(): failed allocation of frame buffer of size "<<buff_size<<" bytes\n";
         return false;
     }
     // reset  counters
@@ -135,7 +135,7 @@ try
         //
 }catch (const std::exception& ex)
 {
-        *fpf_error<<"ERROR: "MY_CLASS_NAME"::ini() failed with exception:\n"<<ex.what()<<endl;
+        *fpf_error<<"ERROR: " MY_CLASS_NAME "::ini() failed with exception:\n"<<ex.what()<<endl;
         input_stream->close();
         delete input_stream;
         input_stream = NULL;
@@ -143,7 +143,7 @@ try
 }
 catch(...)
 {
-        *fpf_error<<"ERROR: "MY_CLASS_NAME"::ini() failed with nonstd exception\n";
+        *fpf_error<<"ERROR: " MY_CLASS_NAME "::ini() failed with nonstd exception\n";
         input_stream->close();
         delete input_stream;
         input_stream = NULL;

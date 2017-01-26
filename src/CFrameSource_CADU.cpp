@@ -108,7 +108,7 @@ bool  CFrameSource_CADU::init(t_ini& ini, string& init_name)
      *fpf_debug << "~ " MY_CLASS_NAME "::init("<<init_name<<")\n";
     if (ini.find(init_name) == ini.end())
     {
-        *fpf_error<<"ERROR: "MY_CLASS_NAME"::init(): init failed, no section ["<<init_name<<"] in the ini file\n";
+        *fpf_error<<"ERROR: " MY_CLASS_NAME "::init(): init failed, no section ["<<init_name<<"] in the ini file\n";
         return false;
     }
     name = init_name;
@@ -190,7 +190,7 @@ try
     input_buffer = new BYTE[buff_size+BUFF_PREFIX];
     if (input_buffer == NULL)
     {
-        *fpf_warn<< "!! "MY_CLASS_NAME"::init(): failed allocation of frame buffer of size "<<buff_size<<" bytes\n";
+        *fpf_warn<< "!! " MY_CLASS_NAME "::init(): failed allocation of frame buffer of size "<<buff_size<<" bytes\n";
         return false;
     }
     // reset  counters
@@ -203,7 +203,7 @@ try
         //
 }catch (const std::exception& ex)
 {
-        *fpf_error<<"ERROR: "MY_CLASS_NAME"::ini() failed with exception:\n"<<ex.what()<<endl;
+        *fpf_error<<"ERROR: " MY_CLASS_NAME "::ini() failed with exception:\n"<<ex.what()<<endl;
         input_stream->close();
         delete input_stream;
         input_stream = NULL;
@@ -211,7 +211,7 @@ try
 }
 catch(...)
 {
-        *fpf_error<<"ERROR: "MY_CLASS_NAME"::ini() failed with nonstd exception\n";
+        *fpf_error<<"ERROR: " MY_CLASS_NAME "::ini() failed with nonstd exception\n";
         input_stream->close();
         delete input_stream;
         input_stream = NULL;
@@ -230,7 +230,7 @@ void CFrameSource_CADU::start(void)
     //
     if (input_stream == NULL)
     {
-        *fpf_error<<"WARNING: "MY_CLASS_NAME"::start("<<name<<") can not start without valid input stream !!\n";
+        *fpf_error<<"WARNING: " MY_CLASS_NAME "::start("<<name<<") can not start without valid input stream !!\n";
         return;
     }
     run_framing();
