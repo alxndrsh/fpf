@@ -39,21 +39,28 @@ class CNode_RSSPipe : public INode
     private:
         unsigned long c_counter;
         int base_apid;
-        int packets_in_slice;
+        int package_buff_bytes;
+        BYTE* buffer_base;
+        size_t buff_fill ;
+        int c_package_packets;
+        bool has_post_failure;
+        int c_chunks;
+
         int c_missing_packets;
         int obt_epoch;
         string slice_id_prefix;
-        string inv_report_header;
-        string inv_report_datatype;
-        string inv_report_url;
-        string inv_report_satellite;
+        string header_custom;
+        string header_datatype;
+        string header_satellite;
+        string header_station;
+        string header_status;
         //
         int prev_pcount;
     int c_slice_missing;
     int c_slice_packets;
     int slice_base;
     size_t slice_start_pos;
-    int c_slices;
+
     string slice_start_time;
     string slice_start_time_long;
 
@@ -61,7 +68,8 @@ class CNode_RSSPipe : public INode
     BYTE* pBuff_end;
     //
     void do_frame_processing(CFrame* pf);
-    bool online_post(string str_report,string url);
+    bool post_buffer(void);
+    void constructURL(CFrame* pf);
 
     string post_to_url;
     string  full_report;

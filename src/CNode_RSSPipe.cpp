@@ -30,19 +30,25 @@ History:
 
 #define MY_CLASS_NAME   "CNode_RSSPipe"
 
-#define DEFAULT_PACKETS_IN_SLICE    4096
+#define DEFAULT_PACKAGE_BYTES    1024*1024
 // INI tags
 
 #define INI_POST_TO   "post_to"
 #define INI_BASE_APID  "apid"
-#define INI_SLICE_SIZE  "slice_size"
-#define INI_META_DATATYPE "data_type"
-#define INI_META_SATELLITE  "satellite"
+//DEFAULT_PACKAGE_BYTES is used as a buffer size, package is sent as soon as the buffer is get full
+#define INI_PACKAGE_BYTES  "package_bytes"
+#define INI_HEADER_DATATYPE "data_type"
+#define INI_HEADER_SATELLITE  "satellite"
+#define INI_HEADER_STATION  "station"
+#define INI_HEADER_CUSTOM "custom_header"
 #define INI_OBT_EPOCH      "obt_epoch"
 
 // ini substitute tags
 #define INI_SUBS_NAME   "NAME"
 #define INI_SUBS_ID     "ID"
+#define INI_STREAM_URL  "STREAMURL"
+#define INI_STREAM_ID   "STREAMID"
+#define INI_STREAM_OBT  "STREAMOBT"
 
 //
 #define ONLINE_USER_AGENT   "FPF RSSPipe,ver.1.0"
@@ -51,6 +57,7 @@ CNode_RSSPipe::CNode_RSSPipe()
 {
     is_initialized = false;
     pnext_node = NULL;
+    c_package_packets = 0;
     base_apid = 0;//MODIS
     c_missing_packets = 0;
     prev_pcount = 0;
@@ -58,15 +65,14 @@ CNode_RSSPipe::CNode_RSSPipe()
     c_slice_packets = 0;
     slice_base = -1;
     slice_start_pos = 0;
-    c_slices=0;
     slice_start_time="";
     slice_start_time_long="";
-    packets_in_slice = 4096;
+    package_buff_bytes = DEFAULT_PACKAGE_BYTES;
     c_counter = 0;
     obt_epoch = EOS_TIME_EPOCH;
     //
     pBuff_base = NULL;
-    pBuff_end = NULL;
+    buff_fill = 0L;
 }
 
 CNode_RSSPipe::~CNode_RSSPipe()
@@ -94,6 +100,8 @@ bool CNode_RSSPipe::init(t_ini& ini, string& init_name, CChain* pchain_arg)
     t_ini_section conf = ini[init_name];
     name = init_name;
     id = name;
+
+    buffer_base = NULL;
     // -------------- do custom initialization here -------------------
     c_missing_packets = 0;
     c_counter = 0;
@@ -102,24 +110,23 @@ bool CNode_RSSPipe::init(t_ini& ini, string& init_name, CChain* pchain_arg)
     c_slice_packets = 0;
     slice_base = -1;
     slice_start_pos = 0;
-    c_slices=0;
     slice_start_time="";
     slice_start_time_long="";
 
     //
-    inv_report_datatype = conf[INI_META_DATATYPE];
-    inv_report_satellite = conf[INI_META_SATELLITE];
-    base_apid = atoi(conf[INI_BASE_APID].c_str());
-    if (base_apid == 0)
-    {
-        *fpf_error<<"ERROR: " MY_CLASS_NAME "("<<name<<")::init 'apid' parameter must be defined\n";
-        return false;
-    }
+    header_datatype = "X-Datatype: "+conf[INI_HEADER_DATATYPE];
+    header_satellite = "X-Satellite: "+conf[INI_HEADER_SATELLITE];
+    header_station = "X-STation: "+conf[INI_HEADER_STATION];
+    header_custom = "X-CustomHeader: "+conf[INI_HEADER_CUSTOM];
+    header_status = "X_Status: first";
     //
-    packets_in_slice = DEFAULT_PACKETS_IN_SLICE;
-    if (! conf[INI_SLICE_SIZE].empty() )
+    package_buff_bytes = DEFAULT_PACKAGE_BYTES;
+    if (! conf[INI_PACKAGE_BYTES].empty() )
     {
-         packets_in_slice = atoi(conf[INI_SLICE_SIZE].c_str());
+         string s = conf[INI_PACKAGE_BYTES];
+        package_buff_bytes = strtoll(s.c_str(),NULL,10);
+        if (s.find_first_of("kK") != string::npos) { package_buff_bytes *= 1024; }
+        else { if (s.find_first_of('M') != string::npos) { package_buff_bytes *= 1024*1024; } }
     }
     //
     obt_epoch = EOS_TIME_EPOCH;
@@ -141,10 +148,35 @@ bool CNode_RSSPipe::init(t_ini& ini, string& init_name, CChain* pchain_arg)
 	if (pnext_node == NULL)
 	{if (!no_next_node) {*fpf_error << "ERROR:  " MY_CLASS_NAME "::init("<<init_name<<") failed to create next node ["<< conf[INI_COMMON_NEXT_NODE] <<"]\n";	return false;	}}
     else  {  if (! pnext_node->init(ini,conf[INI_COMMON_NEXT_NODE],pchain_arg))  { return false;}   }
+    // allocate buffer
+    buffer_base = (BYTE*) malloc(package_buff_bytes);
+    if (buffer_base == NULL)
+    {
+        *fpf_error<<"=>ERROR " MY_CLASS_NAME "("<<name<<")::init failes to allocate buffer of size "<<package_buff_bytes<<" bytes\n";
+        is_initialized = false;
+        return false;
+    }
+    buff_fill = 0;
+    c_chunks = 1; //one-based
+    has_post_failure= false;
     //
     *fpf_trace<<"=> " MY_CLASS_NAME "("<<name<<")::init initialized with post to "<<post_to_url<<"\n";
     is_initialized = true;
     return true;
+}
+
+void CNode_RSSPipe::constructURL(CFrame* pf) //resolve file name, taking data from the frame and its stream, call it after the streeam supplies the valid packets
+{
+    if (string::npos == post_to_url.find('%') ) { return; }//nothing to resolve
+    map<string,string> subs_map;
+    subs_map[INI_SUBS_NAME] = name;
+    subs_map[INI_STREAM_ID] = pf->pstream->id;
+    subs_map[INI_SUBS_ID] = id;
+    char sz[40]; tm* ptm = gmtime(&(pf->pstream->obt_base));
+    strftime (sz,sizeof(sz),"%Y%m%d%H%M%S",ptm);
+    subs_map[INI_STREAM_OBT] = string(sz);
+    //
+    make_substitutions(post_to_url, &subs_map,'%');
 }
 
 void CNode_RSSPipe::start(void)
@@ -157,17 +189,34 @@ void CNode_RSSPipe::stop(void)
 
 void CNode_RSSPipe::close(void)
 {
-    //
-    if (pnext_node != NULL)   {  pnext_node->close();   delete pnext_node;   pnext_node = NULL;   }
-    is_initialized = false;
+
 #ifdef USE_CURL
+    //
     if (! post_to_url.empty())
     {
-        // TODO - post a finish message
+        // -- post last chunk
+        header_status = "X_Status: last";
+        if (!post_buffer())
+        { // stop working if post fails for any reason
+            has_post_failure = true;
+        }
+        c_chunks++;
+
     }
+    //
     if (curl) { curl_easy_cleanup(curl); curl = NULL;}
 #endif
-    *fpf_trace<<"<= " MY_CLASS_NAME "("<<name<<") closed, posted "<<c_slices<<" slices by "<<packets_in_slice<<" packets\n";
+    //
+     //
+    if (pnext_node != NULL)   {  pnext_node->close();   delete pnext_node;   pnext_node = NULL;   }
+    if (buffer_base != NULL)
+    {
+        free(buffer_base);
+        buffer_base = NULL;
+    }
+    is_initialized = false;
+
+    *fpf_trace<<"<= " MY_CLASS_NAME "("<<name<<") closed, posted "<<(c_chunks-1)<<" slices by "<<package_buff_bytes<<" packets\n";
 }
 
 void CNode_RSSPipe::take_frame(CFrame* pf)
@@ -180,117 +229,55 @@ void CNode_RSSPipe::take_frame(CFrame* pf)
     if (pnext_node != NULL) { pnext_node->take_frame(pf); }
 }
 
-
-static int mod_diff(int x1,int x2, int base) // (x2-x1)%base (0 based numbers)
-{
-    int d = x2-x1;
-    if (d<0)  { d=base+d; }
-    return d % base;
-}
-
 void CNode_RSSPipe::do_frame_processing(CFrame* pf)
 {
     c_counter++;
     //
-    BYTE *ph = pf->pdata;
-    // -- prepare values
-
-    /*
-    if (c_counter == 1) //init output header
-    {
-        std::ostringstream ss_header;
-        ss_header << "#"<<inv_report_header <<"\n";
-        ss_header << "#data type: "<<inv_report_datatype <<"\n";
-        ss_header << "#satellite: "<<inv_report_satellite <<"\n";
-        ss_header << "#data file: "<<pf->pstream->url<<"\n";
-        ss_header << "#data url: "<<inv_report_url<<"\n";
-        ss_header << "#ref.APID: "<<base_apid<< "\n";
-        ss_header << "#packets per slice: "<<packets_in_slice<<"\n";
-        time_t wct;time ( &wct );
-        struct tm* ptm;
-        ptm = gmtime( &wct );
-        char szx[40];  strftime (szx,sizeof(szx),"%Y-%m-%dT%H:%M:%SZ",ptm);
-        ss_header << "#created at: "<<szx<<"\n";
-        ss_header << "#fields: slice_id,ref_time,file_pos,slice_size,num_frames,num_errors\n";
-        ss_header << "#\n";
-        #
-        report_header = ss_header.str();
-        full_report = report_header;
-        *output << report_header;
-    }
-    */
-    int tday = SP_GET_EOS_TS_DAYS(ph);
-    int tmsec = SP_GET_EOS_TS_MSEC(ph);
-    time_t utime = (tday*FPF_TIME_SEC_PER_DAY + obt_epoch) + int(tmsec / 1000);
-    char sz[100];
-    tm* ptm = gmtime(&utime);
-    strftime (sz,sizeof(sz),"%Y%m%d%H%M%S",ptm);
-    string stime = sz;
-    strftime (sz,sizeof(sz),"%Y-%m-%dT%H:%M:%S",ptm);
-    string stime_long = sz;
-    // -- check APID
-    int apid = SP_GET_APID(ph);
-    if (apid != base_apid) { return; }
+    if (has_post_failure) { return; } //do nothing if post failed
     //
-    int pcount = SP_GET_COUNT(ph);
-    //check counter continuity
-    if (c_counter ==1) {prev_pcount=pcount-1;}
-    int diff_counter = mod_diff(prev_pcount,pcount,CCSDS_MAX_PACKET_COUNTER+1);
-    if (diff_counter != 1)
-    {
-        c_slice_missing += diff_counter-1; //per slice
-        c_missing_packets += diff_counter-1; //total per stream
-    }
-    prev_pcount = pcount;
-    //identify the slice
-    int base_pcount = packets_in_slice * int(pcount / packets_in_slice);
-    if (base_pcount != slice_base)
-    {//this means a new base
-
-        if (c_slices>0)//issue a slice report, if
+    BYTE *ph = pf->pdata;
+    // --
+    // save packet to the buffer
+    if (pf->frame_size + buff_fill > package_buff_bytes)
+    { // the package buffer is full and should be posted
+        if (c_chunks == 1)
+        { //irst chunk actions
+        // - resolve URL for substitution fields
+            constructURL(pf);
+        }else
         {
-            size_t slice_size = pf->stream_pos - slice_start_pos;//from beginning of this new pack to the first pack of the slice
-            //TODO - count gaps at the end of slice
-            //output slice
-            sprintf(sz,"%s_%s_%05d",slice_id_prefix.c_str(),slice_start_time.c_str(),slice_base);
-            string slice_id = sz;
-            std::ostringstream ss_slice;
-            ss_slice << slice_id<<"\t"<<slice_start_time_long<<"\t"<<slice_start_pos<<"\t"<<slice_size<<"\t"<<c_slice_packets<<"\t"<<c_slice_missing<<"\n";
-            full_report += ss_slice.str();
-            //*output << ss_slice.str();
-            //
-
-              //  if(!online_post(report_header + ss_slice.str(),post_to_url_nrt))
-              //  {
-              //      post_to_url_nrt = ""; //no more attempts to post nrt reports
-              //  }
-
+            header_status = "X_Status: flow";
         }
-        c_slices++;//count issued only
-        //init for new slice collection
-        slice_base = base_pcount;
-        c_slice_missing = pcount - slice_base;
-        c_slice_packets = 0;
-        slice_start_pos = pf->stream_pos;
-        sprintf(sz,"%s%03d",stime.c_str(), tmsec%1000);
-        slice_start_time = sz;
-        sprintf(sz,"%s.%03d",stime_long.c_str(), tmsec%1000);
-        slice_start_time_long = sz;
+        #
+        if (!post_buffer())
+        { // stop working if post fails for any reason
+            has_post_failure = true;
+        }
+        c_chunks++;
+        //and reset package counters and attributes
+        buff_fill = 0;
+        c_package_packets = 0;
     }
-    //for packets of the current slice
-    c_slice_packets++;
+    //append frame to the buffer
+    memcpy(buffer_base+buff_fill,pf->pdata,pf->frame_size);
+    buff_fill += pf->frame_size;
+    c_package_packets++;
+    return;
+
+
 }
 
-struct hstring_t //helper structure to pass to CURL read callback, keeps track of reading from the string
+class read_buff //helper structure to pass to CURL read callback, keeps track of reading from the buffer
 {
     public:
-        string* pstr;
+        BYTE* buff;
         size_t len;
         size_t pos;
-        hstring_t( string *arg_pstr)
+        string response;
+        read_buff( BYTE *pbuff, size_t bsize)
         {
-            pstr = arg_pstr;
-            len = pstr->length();
+            buff = pbuff;
+            len = bsize;
             pos = 0;
         };
         size_t read(char* ptr,size_t nsize)
@@ -298,52 +285,100 @@ struct hstring_t //helper structure to pass to CURL read callback, keeps track o
             int to_copy = (int) nsize;
             if (to_copy > int(len)-int(pos)) { to_copy = len-pos;}
             if (to_copy<1) { return 0; }
-            memcpy(ptr,pstr->c_str() + pos, to_copy);
+            memcpy(ptr,buff + pos, to_copy);
             pos += to_copy;
             return (size_t)to_copy;
+        };
+        void save_responce(char* ptr,size_t nsize)
+        {
+            response += string(ptr,nsize);
         }
 } ;
 
 static size_t read_callback(void *ptr, size_t nsize, size_t nmemb, void *data)
 { // CURL read callback
-  return ((hstring_t*)data)->read((char*)ptr,nsize*nmemb);
+
+  return ((read_buff*)data)->read((char*)ptr,nsize*nmemb);
 }
 
-bool CNode_RSSPipe::online_post(string str_report,string url)
+static size_t write_callback(char *in, size_t xsize, size_t nmemb, void *data)
 {
+  size_t rsize;
+  rsize = xsize * nmemb;
+  ((read_buff*)data)->save_responce((char*)in,rsize);
+  return rsize;
+}
+
+bool CNode_RSSPipe::post_buffer(void)
+{
+    bool print_responce = false;
 #ifdef USE_CURL
     //
     if (curl == NULL)
     {
+         has_post_failure = false;
          curl = curl_easy_init();
           if (curl == NULL)
           {
                 *fpf_error << "ERROR: " MY_CLASS_NAME "("<<name<<") CURL initialization error\n";
+                has_post_failure = true;
                 return false;
           }
     }
     //setup connection
     curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
     curl_easy_setopt(curl, CURLOPT_USERAGENT, ONLINE_USER_AGENT);
-    curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-
+    curl_easy_setopt(curl, CURLOPT_URL, post_to_url.c_str());
+    //add headers
+    struct curl_slist *chunk = NULL;
+    char schunk_no[32]  ;
+    sprintf(schunk_no,"X-ChunkNumber: %d",c_chunks);
+    char schunk_size[32]  ;
+    sprintf(schunk_size,"X-ChunkSize: %ld",buff_fill);
+    char schunk_frames[32]  ;
+    sprintf(schunk_frames,"X-ChunkFrames: %d",c_package_packets);
+    chunk = curl_slist_append(chunk, header_custom.c_str());
+    chunk = curl_slist_append(chunk, header_datatype.c_str());
+    chunk = curl_slist_append(chunk, header_satellite.c_str());
+    chunk = curl_slist_append(chunk, header_station.c_str());
+    chunk = curl_slist_append(chunk, header_status.c_str());
+    chunk = curl_slist_append(chunk, schunk_no);
+    chunk = curl_slist_append(chunk, schunk_size);
+    chunk = curl_slist_append(chunk, schunk_frames);
+    CURLcode res = curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
     //setup read callback
-    hstring_t hstring(&str_report);
+    read_buff h_read_buff  = read_buff(buffer_base,buff_fill);
     curl_easy_setopt(curl, CURLOPT_READFUNCTION, read_callback);
-    curl_easy_setopt(curl, CURLOPT_READDATA, &hstring);
-    curl_easy_setopt(curl, CURLOPT_INFILESIZE, hstring.len);//curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, str_report.length());
+    curl_easy_setopt(curl, CURLOPT_READDATA, &h_read_buff);
+    curl_easy_setopt(curl, CURLOPT_INFILESIZE, buff_fill);//curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, str_report.length());
+    //accept response
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &h_read_buff);
+    char errbuf[CURL_ERROR_SIZE];
+    curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, errbuf);
     //make the call
-    CURLcode res = curl_easy_perform(curl);
+    res = curl_easy_perform(curl);
     // Check for errors
+    long response_code;
+    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
     if(res != CURLE_OK) {
-      *fpf_error << "ERROR: " MY_CLASS_NAME "("<<name<<") online post error:"<<curl_easy_strerror(res)<<"\n";
+      *fpf_error << "= ERROR = " MY_CLASS_NAME "("<<name<<") online post error ("<<response_code<<"):"<<curl_easy_strerror(res)<<"\n";
       return false;
     }
     else {
-      *fpf_trace << "-inv.report upload, OK\n";
-      return true;
+      if (response_code == 200)
+      {
+        if(print_responce) //print positive responce only if requested
+        {
+          *fpf_info << "= " MY_CLASS_NAME "("<<name<<") posted OK: ------\n" <<h_read_buff.response <<"\n----------\n"; ;
+        }
+      }else
+      {
+          *fpf_error << "= ERROR = " MY_CLASS_NAME "("<<name<<") package post failed with code "<<response_code<<"\n----\n"<<h_read_buff.response <<"\n----------\n";
+          return false;
+      }
     }
-
+    return true;
 #endif
 }
 

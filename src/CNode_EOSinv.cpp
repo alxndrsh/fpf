@@ -317,11 +317,14 @@ void CNode_EOSinv::do_frame_processing(CFrame* pf)
             full_report += ss_slice.str();
             *output << ss_slice.str();
             //
-            if (! post_to_url_nrt.empty())
+            if (c_slices>0) //do not post first, usually not complete record
             {
-                if(!online_post(report_header + ss_slice.str(),post_to_url_nrt, c_slices == 1))
+                if (! post_to_url_nrt.empty())
                 {
-                    post_to_url_nrt = ""; //no more attempts to post nrt reports
+                    if(!online_post(report_header + ss_slice.str(),post_to_url_nrt, c_slices == 1))
+                    {
+                        post_to_url_nrt = ""; //no more attempts to post nrt reports
+                    }
                 }
             }
         }

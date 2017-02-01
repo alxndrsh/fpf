@@ -22,9 +22,11 @@ History:
 #define INI_BYTES_TO_READ   "read_bytes"
 #define INI_RT_TIMEOUT   "rt_timeout"
 
+//microseconds
 #define RT_SLEEP_AFTER_PARTIAL  100000
-#define RT_SLEEP_AFTER_ZERO  1000000
-#define RT_SLEEP_RETRIES_AFTER_ZERO  5
+//seconds
+#define RT_SLEEP_AFTER_ZERO  1
+#define RT_SLEEP_RETRIES_AFTER_ZERO  11
 
 CInputStream_File::CInputStream_File()
 {
@@ -169,12 +171,12 @@ unsigned int CInputStream_File::read(BYTE* pbuff, size_t read_bytes, int& ierror
     { // wait a bit and retry
        if(readed > 0 ) //partial read, just implement small delay before next read
        {
-            usleep(RT_SLEEP_AFTER_PARTIAL); cout<<"."<<endl;
+            usleep(RT_SLEEP_AFTER_PARTIAL); //cout<<"."<<endl;
        }else
        {// its a zero read, wait if something will be appended
            for (int attempt =0; attempt < rt_timeout; attempt++)
            {
-               usleep(RT_SLEEP_AFTER_ZERO);  cout<<"*"<<endl;
+               sleep(RT_SLEEP_AFTER_ZERO);  cout<<"*"<<attempt<<"\n";
                readed = fread (pbuff,1,bytes_to_read,file);
                if (readed > 0)
                {
@@ -184,7 +186,7 @@ unsigned int CInputStream_File::read(BYTE* pbuff, size_t read_bytes, int& ierror
                }
                //else, try again
            }
-           *fpf_trace<<"= " MY_CLASS_NAME "("<<name<<") zero reads in RT mode timeout reached\n";
+           *fpf_trace<<"= " MY_CLASS_NAME "("<<name<<") zero reads in RT mode timeout reached ("<<rt_timeout<<"s)\n";
            return 0;
        }
 
