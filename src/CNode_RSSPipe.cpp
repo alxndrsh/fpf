@@ -51,7 +51,7 @@ History:
 #define INI_STREAM_OBT  "STREAMOBT"
 
 //
-#define ONLINE_USER_AGENT   "FPF RSSPipe,ver.1.0"
+#define ONLINE_USER_AGENT   "FPF RSSPipe,ver.1.1"
 
 CNode_RSSPipe::CNode_RSSPipe()
 {
@@ -207,7 +207,6 @@ void CNode_RSSPipe::close(void)
     if (curl) { curl_easy_cleanup(curl); curl = NULL;}
 #endif
     //
-     //
     if (pnext_node != NULL)   {  pnext_node->close();   delete pnext_node;   pnext_node = NULL;   }
     if (buffer_base != NULL)
     {
@@ -229,13 +228,12 @@ void CNode_RSSPipe::take_frame(CFrame* pf)
     if (pnext_node != NULL) { pnext_node->take_frame(pf); }
 }
 
-void CNode_RSSPipe::do_frame_processing(CFrame* pf)
+void CNode_RSSPipe::do_frame_processing(CFrame* pf) 
 {
     c_counter++;
     //
     if (has_post_failure) { return; } //do nothing if post failed
     //
-    BYTE *ph = pf->pdata;
     // --
     // save packet to the buffer
     if (pf->frame_size + buff_fill > package_buff_bytes)

@@ -164,8 +164,6 @@ void CNode_ZTS::take_frame(CFrame* pf)
     if (pnext_node != NULL) { pnext_node->take_frame(p_output_frame); }
 }
 
-static int prev_t = 0;
-
 
 void CNode_ZTS::do_frame_processing(CFrame* pf)
 {

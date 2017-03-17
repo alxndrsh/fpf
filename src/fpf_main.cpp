@@ -38,9 +38,12 @@ ostream stream_null(NULL);
 int main(int argc, char* argv[])
 {
     cerr<< "*** Frame Processing Framework engine. v 0.6. build: " << __DATE__ <<" *** "<<endl;
-
+    int exit_code = 0;
     string ini_fn;
+    IFrameSource* frame_source;
     map<string,string> map_parameters;
+    string s_fs_class;
+    string s_root_framer;
     //------- get command line options ----------------
     int carg;
     size_t eqpos;string sx;
@@ -102,27 +105,31 @@ int main(int argc, char* argv[])
         *fpf_error << "\n#ERROR: no [" << INI_MAIN_SECTION << "] section in the ini file\n";
         //TO DO - fill dummy main section to work further!
         // if no default here, terminate the programm
-        exit(EXIT_ERR_CONFIG_INCOMPLETE);
+        exit_code = EXIT_ERR_CONFIG_INCOMPLETE;
+        goto THEEND;
     }//
     //Construct the root framer
-    string s_root_framer = g_ini[INI_MAIN_SECTION][INI_MAIN_FRAMESOURCE];
+    s_root_framer = g_ini[INI_MAIN_SECTION][INI_MAIN_FRAMESOURCE];
     if (s_root_framer.empty())
     {
         *fpf_error << "\n#ERROR: no [" << INI_MAIN_FRAMESOURCE << "] set in main section to define root framer\n";
-        exit(EXIT_ERR_CONFIG_INCOMPLETE);
+        exit_code = EXIT_ERR_CONFIG_INCOMPLETE;
+        goto THEEND;
     }
     if (g_ini.find(s_root_framer) == g_ini.end())
     {
         *fpf_error << "\n#ERROR: no [" << INI_MAIN_FRAMESOURCE << "] section to be taken as a root framer\n";
-        exit(EXIT_ERR_CONFIG_INCOMPLETE);
+        exit_code = EXIT_ERR_CONFIG_INCOMPLETE;
+        goto THEEND;
     }
-    string s_fs_class = g_ini[s_root_framer][INI_COMMON_CLASS];
+    s_fs_class = g_ini[s_root_framer][INI_COMMON_CLASS];
     *fpf_info<<"* Using ["<<s_fs_class<<"] as a root frame source\n";
-    IFrameSource* frame_source = new_frame_source(s_fs_class);
+    frame_source = new_frame_source(s_fs_class);
     if (NULL == frame_source)
     {
         *fpf_error<<"\n#ERROR: failed to instantiate frame souce.\n";
-        exit(EXIT_ERR_CONFIG_INCOMPLETE);
+        exit_code = EXIT_ERR_CONFIG_INCOMPLETE;
+        goto THEEND;
     }
     // run it
     if (frame_source->init(g_ini,s_root_framer))
@@ -137,10 +144,12 @@ int main(int argc, char* argv[])
     }else
     {
         *fpf_error << "\n#ERROR: framer initialization failed.\n";
-        exit(EXIT_ERR_INITIALIZATION_FAILED);
+        exit_code = EXIT_ERR_INITIALIZATION_FAILED;
+        goto THEEND;
     }
 
     //OK, bye-bye
     *fpf_info<<"* OK, normal termination.\n";
-    return 0;
+THEEND:
+    return exit_code;
 }

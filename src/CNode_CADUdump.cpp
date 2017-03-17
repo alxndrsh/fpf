@@ -30,6 +30,8 @@ History:
 #define INI_USEHEX "use_hex"
 #define INI_DUMP_TIMES  "dump_times"
 #define INI_SAVE_TO "save_to"
+//frame header version, default = 1
+#define INI_TF_VERSION "tf_version"
 
 CNode_CADUdump::CNode_CADUdump()
 {
@@ -41,7 +43,7 @@ CNode_CADUdump::CNode_CADUdump()
     c_counter = 0; c_dumped = 0;
     dump_times = false;
     trace_every = 1;
-    tf_version = 0;
+    tf_version = 1; //default, TERRA.AQUA
 }
 
 CNode_CADUdump::~CNode_CADUdump()
@@ -69,6 +71,8 @@ bool CNode_CADUdump::init(t_ini& ini, string& init_name, CChain* pchain_arg)
     use_hex = false;
     if (conf[INI_USEHEX] ==INI_COMMON_VAL_YES ) {use_hex = true;}
     if (conf[INI_DUMP_TIMES] ==INI_COMMON_VAL_YES ) {dump_times = true;}
+    //
+    if (!conf[INI_TF_VERSION].empty()) {tf_version = atoi(conf[INI_TF_VERSION].c_str());}
     //
     if (!conf[INI_SAVE_TO].empty())
     { //setup output stream
@@ -137,9 +141,8 @@ void CNode_CADUdump::do_frame_processing(CFrame* pf)
     unsigned int vcid;
     unsigned int vccount;
     unsigned int mccount;
-    int frame_tf_version = CADU_GET_TF_VERSION(pcadu); //TODO - add explicit setup
-    if (tf_version>0) {frame_tf_version = tf_version;}
-    switch (frame_tf_version)
+
+    switch (tf_version)
     {
         case 0:
             sc = TFV1_GET_SPACECRAFT(pcadu);
@@ -150,7 +153,7 @@ void CNode_CADUdump::do_frame_processing(CFrame* pf)
         case 1:
             sc = CADU_GET_SPACECRAFT(pcadu);
             vcid = CADU_GET_VCID(pcadu);
-            vccount = TFV1_GET_VCCOUNTER(pcadu);
+            vccount = CADU_GET_VCCOUNTER(pcadu);
              mccount = 0;
             break;
         default:
@@ -184,7 +187,7 @@ void CNode_CADUdump::do_frame_processing(CFrame* pf)
         *output<<name<<"-CADU ["<<setw(8)<<right<<c_counter<<"]["<<setw(8)<<right<<pf->cframe<<"] at ["<<pf->stream_pos<<"]\n";
         *output<<setw(8)<<right;
         *output<<"  Sync Marker:\t"<< hex<<cadu->ASM<<endl;
-        *output<<"      version:\t"<<dec<<setw(8)<<right<< (int)(cadu->version) <<" [0x"<<hex<< (int)(cadu->version)<<"]"<<endl;
+        *output<<"      version:\t"<<dec<<setw(8)<<right<< (int)(cadu->version) <<" [0x"<<hex<< (int)(cadu->version)<<"] (tf format: " <<tf_version<<")"<<endl;
         *output<<"   spacecraft:\t"<<dec<<setw(8)<<right<< sc  <<" [0x"<<hex<< (int)(sc)<<"]"  <<"  ("<<spacecraft<<")"<<endl;
         *output<<"         VCID:\t"<<dec<<setw(8)<<right<<vcid <<" [0x"<<hex<<vcid<<"]"<<" ("<<vcname<<")"<<endl;
         *output<<"   VCDU count:\t"<<dec<<setw(9)<<right<< vccount <<" [0x"<<hex<<vccount<<"]"<<endl;
@@ -210,10 +213,10 @@ void CNode_CADUdump::do_frame_processing(CFrame* pf)
                *output <<endl;
                 break;
     case FORMAT_LINES_LONG:
-        *output<<name<<"-CADU ["<<setw(8)<<right<<c_counter<<"]["<<setw(8)<<right<<pf->cframe<<"] at ["<<setw(10)<<pf->stream_pos<<"]  sc:"<<setw(4)<<right<< sc << "("<<spacecraft<<")"
+        *output<<name<<"-CADU v"<<tf_version<<" ["<<setw(8)<<right<<c_counter<<"]["<<setw(8)<<right<<pf->cframe<<"] at ["<<setw(10)<<pf->stream_pos<<"] ["<< hex<<cadu->ASM <<dec<<"] sc:"<<setw(4)<<right<< sc << "("<<spacecraft<<")"
                 <<"\tVCID:"<<setw(4)<<right<< vcid<<"("<<vcname<<")";
-        if (frame_tf_version == 0) { *output<<"\tmccount:"<<setw(9)<<right<< mccount ;}
-         *output<<"\tcount:"<<setw(9)<<right<< vccount
+        if (tf_version == 0) { *output<<"\tmccount:"<<setw(9)<<right<< mccount ;}
+         *output<<"\tcount:"<<setw(9)<<right<<dec<< vccount
                 <<"\tCRC:"<<crc<< ", err: "<<dec<<setw(3)<<right<< pf->bit_errors;
         if (dump_times)
         {

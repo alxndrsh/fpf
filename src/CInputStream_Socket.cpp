@@ -6,14 +6,13 @@
 
 #ifdef HAS_WINSOCK
 #include <winsock2.h>
-#endif // HAS_WINSOCK
-
-#ifdef HAS_SOCKET_H
+ 
+#else // no WINSOCK
 #include <netinet/in.h>
 #include <netdb.h>	//hostent
 #include <sys/socket.h>
 #include <arpa/inet.h>
-#endif // HAS_SOCKET_H
+#endif // HAS_WINSOCK
 
 #include "CInputStream_Socket.h"
 
@@ -200,14 +199,14 @@ ACCEPT_CONNECTION:
         if (fork_pid == 0) // In child process
         {
             ::close(listen_socket); listen_socket = NO_SOCKET;
-            *fpf_info <<  "= " MY_CLASS_NAME "("<<name<<") forked child process, pid="<<getpid()<<"\n";
+            *fpf_info <<  "= " MY_CLASS_NAME "("<<name<<") forked child process, pid=xxx\n"; // <getpid() - not available on all system, TODO
             //and proceed further with reading from client_socket
         }
         else // Parent process - return to accepting new connections
         {
             if (fork_pid == -1)
             {
-                *fpf_error << "ERROR: " MY_CLASS_NAME "("<<name<<") fork new process failed, err="<<errno<"\n";
+                *fpf_error << "ERROR: " MY_CLASS_NAME "("<<name<<") fork new process failed, err="<<errno<<"\n";
                 //ierror = 1;
                 return 0;
             }

@@ -39,7 +39,7 @@ class CNode_RSSPipe : public INode
     private:
         unsigned long c_counter;
         int base_apid;
-        int package_buff_bytes;
+        size_t package_buff_bytes;
         BYTE* buffer_base;
         size_t buff_fill ;
         int c_package_packets;
