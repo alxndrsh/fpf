@@ -34,6 +34,7 @@ class CInputStream_File : public IInputStream
         FILE *file;
         size_t  read_total;
         size_t  start_offset;
+        long long  start_offset_argument;
         size_t bytes_to_read;
         int rt_timeout;
         bool is_rt; //switch on real-time behaviour

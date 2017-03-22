@@ -23,7 +23,7 @@ History:
 #define INI_RT_TIMEOUT   "rt_timeout"
 
 //microseconds
-#define RT_SLEEP_AFTER_PARTIAL  100000
+#define RT_SLEEP_AFTER_PARTIAL  0
 //seconds
 #define RT_SLEEP_AFTER_ZERO  1
 #define RT_SLEEP_RETRIES_AFTER_ZERO  11
@@ -34,6 +34,7 @@ CInputStream_File::CInputStream_File()
     url = "";
     stream_pos = 0;
     start_offset = 0;
+    start_offset_argument = 0LL;
     is_rt = false;
     bytes_to_read = 0;
     read_total = 0;
@@ -53,6 +54,7 @@ bool CInputStream_File::init(t_ini& ini, string& init_name)
     fpf_last_error.clear();
     is_initialized = false;
     start_offset = 0;
+    start_offset_argument = 0LL;
     // figure out a file name
     if (ini.find(init_name) == ini.end())
     {
@@ -64,9 +66,9 @@ bool CInputStream_File::init(t_ini& ini, string& init_name)
     if (conf.find(INI_START_OFFSET) != conf.end())
     {
         string s = conf[INI_START_OFFSET];
-        start_offset = strtoll(s.c_str(),NULL,10);
-        if (s.find_first_of("kK") != string::npos) { start_offset *= 1024; }
-        else { if (s.find_first_of('M') != string::npos) { start_offset *= 1024*1024; } }
+        start_offset_argument = strtoll(s.c_str(),NULL,10);
+        if (s.find_first_of("kK") != string::npos) { start_offset_argument *= 1024; }
+        else { if (s.find_first_of('M') != string::npos) { start_offset_argument *= 1024*1024; } }
     }
     if (conf.find(INI_BYTES_TO_READ) != conf.end())
     {
@@ -108,9 +110,21 @@ bool CInputStream_File::init(t_ini& ini, string& init_name)
             return false;
         }
         // adjust initial position
-        if (0 == fseek ( file , start_offset , SEEK_SET ))
+        if (start_offset_argument<0) //offset from the end of file
         {
-            *fpf_trace<<"= CInputStream_File::init("<<name<<") opened file "<<file_name<<":"<<start_offset<<"+"<<bytes_to_read<<endl;
+
+            if (0 == fseek ( file , start_offset_argument , SEEK_END ))
+            {
+                *fpf_trace<<"= CInputStream_File::init("<<name<<") opened file "<<file_name<<":"<<start_offset_argument<<"+"<<bytes_to_read<<endl;
+            }
+            start_offset = ftell(file);
+        }
+        else {
+            start_offset = (size_t)start_offset_argument;
+            if (0 == fseek ( file , start_offset , SEEK_SET ))
+            {
+                *fpf_trace<<"= CInputStream_File::init("<<name<<") opened file "<<file_name<<":"<<start_offset_argument<<"+"<<bytes_to_read<<endl;
+            }
         }
     }
     if (ferror(file))
@@ -153,10 +167,18 @@ unsigned int CInputStream_File::read(BYTE* pbuff, size_t read_bytes, int& ierror
     FPF_ASSERT((file != NULL),"CInputStream_File::read, file not opened");
     FPF_ASSERT((pbuff != NULL),"CInputStream_File::read to NULL buffer");
     //
-    if ((bytes_to_read > 0) && (read_total > bytes_to_read))
+    if (bytes_to_read > 0)
     {
-         *fpf_warn<<"\n!! " MY_CLASS_NAME "("<<name<<")::read reached limit of bytes to read ("<<bytes_to_read<<")\n\n";
-        return 0;
+        if (read_total + read_bytes > bytes_to_read)
+        {
+            read_bytes = bytes_to_read - read_total; //read less to fit into limit
+        }
+        //
+        if (read_total > bytes_to_read)
+        {
+             *fpf_warn<<"\n!! " MY_CLASS_NAME "("<<name<<")::read reached limit of bytes to read ("<<bytes_to_read<<")\n\n";
+            return 0;
+        }
     }
     //
     size_t readed = fread (pbuff,1,read_bytes,file);
@@ -177,10 +199,11 @@ unsigned int CInputStream_File::read(BYTE* pbuff, size_t read_bytes, int& ierror
            for (int attempt =0; attempt < rt_timeout; attempt++)
            {
                sleep(RT_SLEEP_AFTER_ZERO);  cout<<"*"<<attempt<<"\n";
-               readed = fread (pbuff,1,bytes_to_read,file);
+               readed = fread (pbuff,1,read_bytes,file);
                if (readed > 0)
                {
                    read_total += readed;
+                   stream_pos += readed;
                    ierror = 0;
                    return readed;
                }
