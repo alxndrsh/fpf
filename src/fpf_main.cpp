@@ -37,7 +37,7 @@ ostream stream_null(NULL);
 
 int main(int argc, char* argv[])
 {
-    cerr<< "*** Frame Processing Framework engine. v 0.6. build: " << __DATE__ <<" *** "<<endl;
+    cerr<< "*** Frame Processing Framework engine. v 0.7. build: " << __DATE__ <<" *** "<<endl;
     int exit_code = 0;
     string ini_fn;
     IFrameSource* frame_source;
