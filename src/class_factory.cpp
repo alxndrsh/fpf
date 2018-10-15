@@ -36,6 +36,7 @@ History:
 #include "CNode_TFstat.h"
 // inputs
 #include "CInputStream_File.h"
+#include "CInputStream_NetCDF.h"
 #include "CInputStream_Socket.h"
 
 
@@ -165,6 +166,7 @@ IInputStream* new_input_stream(std::string& classname)
 
         //// ----- add new node classes here-------------
         FACTORY_CINPUTSTREAM_FILE(classname)
+        FACTORY_CINPUTSTREAM_NETCDF(classname)
         FACTORY_CINPUTSTREAM_SOCKET(classname)
 
         // invalid class requested if reached this point

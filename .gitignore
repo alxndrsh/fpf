@@ -30,3 +30,5 @@ obj
 *.depend
 *.layout
 
+# Vim tmp files
+*.sw[op]
