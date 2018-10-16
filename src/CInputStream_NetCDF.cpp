@@ -22,15 +22,15 @@ History:
 #define INI_NC_VAR_NAME "netcdf_variable"
 
 CInputStream_NetCDF::CInputStream_NetCDF() {
-    ncid = NULL;
-    varid = NULL;
+    ncid = -1;
+    varid = -1;
     url = "";
     stream_pos = 0;
     read_total = 0;
 }
 
 CInputStream_NetCDF::~CInputStream_NetCDF() {
-    if (ncid != NULL) { nc_close(ncid); ncid = NULL;}
+    if (ncid >= 0) { nc_close(ncid); ncid = -1;}
 }
 
 bool CInputStream_NetCDF::init(t_ini& ini, string& init_name) {
@@ -61,13 +61,17 @@ bool CInputStream_NetCDF::init(t_ini& ini, string& init_name) {
 
     //-- open input netcdf file: 
     // https://www.unidata.ucar.edu/software/netcdf/docs/group__datasets.html#ga44b4199fe8cabca419e1cf5f3a169353
-    if (nc_open(file_name.c_str(), NC_NOWRITE, &ncid) != NC_NOERR) {
-        *fpf_error<<"ERROR: CInputStream_NetCDF::init("<<name<<")  netcdf file open failed\n   File:"<<file_name<<"\n   Error ["<<errno<<"]:"<<strerror(errno)<<endl;
+    int status = nc_open(file_name.c_str(), NC_NOWRITE, &ncid);
+    if (status != NC_NOERR) {
+        *fpf_error<<"ERROR: CInputStream_NetCDF::init("<<name<<")  netcdf file open failed" 
+            << "\n   File:" <<file_name <<"\n   Error [" << status <<"]:" << nc_strerror(status) << endl;
         return false;
     }
     // ensure that the variable exists:
-    if (nc_inq_varid(ncid, nc_var_name.c_str(), &varid) != NC_NOERR) {
-        *fpf_error<<"ERROR: CInputStream_NetCDF::init("<<name<<") error with netcdf variable " << nc_var_name << "\n   File:"<<file_name<<"\n   Error ["<<errno<<"]:"<<strerror(errno)<<endl;
+    status = nc_inq_varid(ncid, nc_var_name.c_str(), &varid);
+    if (status != NC_NOERR) {
+        *fpf_error<<"ERROR: CInputStream_NetCDF::init("<<name<<") error with netcdf variable " << nc_var_name 
+            << "\n   File:" <<file_name <<"\n   Error [" << status <<"]:" << nc_strerror(status) << endl;
         return false;
     }
 
@@ -86,20 +90,21 @@ void CInputStream_NetCDF::start(void) { }
 void CInputStream_NetCDF::stop(void) { }
 
 void CInputStream_NetCDF::close(void) {
-    if (ncid != NULL) { nc_close(ncid); ncid = NULL;}
+    if (ncid >= 0) { nc_close(ncid); ncid = -1;}
     is_initialized = false;
     *fpf_trace<<"<= " MY_CLASS_NAME "("<<name<<") closed, "<<read_total<<" bytes read\n";
 }
 
 
 unsigned int CInputStream_NetCDF::read(BYTE* pbuff, size_t read_bytes, int& ierror) {
-    FPF_ASSERT((ncid != NULL),"CInputStream_NetCDF::read, netcdf not opened");
+    FPF_ASSERT((ncid >= 0),"CInputStream_NetCDF::read, netcdf not opened");
     FPF_ASSERT((pbuff != NULL),"CInputStream_NetCDF::read to NULL buffer");
 
     // inquire for the dimensions of the variable, only support 1D variable...
     // ie. the variable should just be a 1D array of bytes.
     int ndims;
-    if (nc_inq_varndims(ncid, varid, &ndims) != NC_NOERR) {
+    int status = nc_inq_varndims(ncid, varid, &ndims);
+    if (status != NC_NOERR) {
         *fpf_error << "ERROR: " MY_CLASS_NAME "("<<name<<") error finding netcdf dimensions for" << nc_var_name 
             << "\n   File:" << file_name << "\n   Error ["<<status<<"]:" << nc_strerror(status) << endl;
         ierror = 1;
@@ -110,14 +115,16 @@ unsigned int CInputStream_NetCDF::read(BYTE* pbuff, size_t read_bytes, int& ierr
     // get the size of the dimension, will have to read from stream_pos up to
     // either read_bytes or dims_size, whichever is smaller.
     int dimid;
-    if (nc_inq_vardimid(ncid, varid, &dimid) != NC_NOERR) {
+    status = nc_inq_vardimid(ncid, varid, &dimid);
+    if (status != NC_NOERR) {
         *fpf_error<<"ERROR: " MY_CLASS_NAME "("<<name<<") error finding netcdf dimension id" << nc_var_name 
             << "\n   File:" << file_name << "\n   Error ["<<status<<"]:" << nc_strerror(status) << endl;
         ierror = 1;
         return 0;
     }
     size_t dimlen;
-    if (nc_inq_dimlen(ncid, dimid, &dimlen) != NC_NOERR) {
+    status = nc_inq_dimlen(ncid, dimid, &dimlen);
+    if (status != NC_NOERR) {
         *fpf_error<<"ERROR: " MY_CLASS_NAME "("<<name<<") error reading netcdf dimension len" << nc_var_name 
             << "\n   File:" << file_name << "\n   Error ["<<status<<"]:" << nc_strerror(status) << endl;
         ierror = 1;
@@ -129,7 +136,7 @@ unsigned int CInputStream_NetCDF::read(BYTE* pbuff, size_t read_bytes, int& ierr
     size_t count[] = {std::min(dimlen - stream_pos, read_bytes)};
     
     //size_t readed = fread (pbuff,1,read_bytes,file);
-    int status = nc_get_vara(ncid, varid, start, count, pbuff);
+    status = nc_get_vara(ncid, varid, start, count, pbuff);
     if ( status != NC_NOERR) {
         *fpf_error<<"ERROR: " MY_CLASS_NAME "("<<name<<") error reading netcdf variable values for" << nc_var_name 
             << "\n   File:" << file_name << "\n   Error ["<<status<<"]:" << nc_strerror(status) << endl;

@@ -39,7 +39,8 @@ class CInputStream_NetCDF : public IInputStream
     protected:
     private:
         string file_name;
-        int ncid, varid;
+        int ncid;
+        int varid;
         size_t  read_total;
         string nc_var_name;
 };
