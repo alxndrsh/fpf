@@ -21,6 +21,8 @@ History:
 
 #define INI_NC_VAR_NAME "netcdf_variable"
 
+#ifdef USE_NETCDF
+
 CInputStream_NetCDF::CInputStream_NetCDF() {
     ncid = -1;
     varid = -1;
@@ -151,3 +153,4 @@ unsigned int CInputStream_NetCDF::read(BYTE* pbuff, size_t read_bytes, int& ierr
     return count[0];
 }
 
+#endif // USE_NETCDF

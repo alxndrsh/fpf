@@ -3,7 +3,7 @@ FPF - Frame Processing Framework
 See the file COPYING for copying permission.
 */
 /*
-InputStream_File. - Input Stream reading bitstream from a file
+InputStream_NetCDF. - Input Stream reading bitstream from a NetCDF Variable.
 
 History:
     created: 2018-10 - Stefan Codrescu.
