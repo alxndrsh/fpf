@@ -289,6 +289,15 @@ will stop growing. So if not intended to be used with growing in real time files
 it is better to keep this parameter set to "no", otherwise some unnecessary
 delay will be introduced at the end of file reading.
 
+#### InputStream_NetCDF
+
+InputStream_NetCDF is used to read an input bit stream from a NetCDF Variable.
+
+Parameters:
+ - *file_name* - NetCDF filename to open.
+ - *netcdf_variable* - A 1 dimensional Variable to read and interpret as a 
+sequence of bytes.
+
 ### Frame processing nodes
 
 #### CNode_Counter
