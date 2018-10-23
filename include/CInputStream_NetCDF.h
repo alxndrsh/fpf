@@ -12,6 +12,7 @@ History:
 #define CINPUTSTREAM_NETCDF_H
 
 #include <stdio.h>
+#include <vector>
 #include "fpf.h"
 #include "class_factory.h"
 
@@ -34,14 +35,17 @@ class CInputStream_NetCDF : public IInputStream
         void start(void);
         void stop(void);
         void close(void);
+        void prepare_read(void);
         //frame processing
         unsigned int read(BYTE* pbuff, size_t bytes_to_read, int& ierror);
     protected:
     private:
-        string file_name;
+        std::vector<string> file_names;  // vector of files to read
+        std::string file_name;  // string name of current file being read
         int ncid;
         int varid;
         size_t  read_total;
+        size_t stream_len;
         string nc_var_name;
 };
 
