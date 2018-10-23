@@ -134,8 +134,14 @@ unsigned int CInputStream_NetCDF::read(BYTE* pbuff, size_t read_bytes, int& ierr
     }
 
     // remaining to read is (dimlen - stream_pos), can read up to read_bytes
+    size_t read_count = std::min(dimlen - stream_pos, read_bytes);
+    if (read_count == 0) {
+        // nothing left to read.
+        ierror = 0;
+        return 0;
+    }
     size_t start[] = {stream_pos};
-    size_t count[] = {std::min(dimlen - stream_pos, read_bytes)};
+    size_t count[] = {read_count};
     
     //size_t readed = fread (pbuff,1,read_bytes,file);
     status = nc_get_vara(ncid, varid, start, count, pbuff);
