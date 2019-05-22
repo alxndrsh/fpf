@@ -103,27 +103,28 @@ class CStream
 #define FRAME_CRC_NOTCHECKED -1
 #define FRAME_CRC_OK          0
 #define FRAME_CRC_FAILED      1
+
 class CFrame
 {
 
     public:
         CFrame();
-        BYTE* pdata; //pointer to the frame data buffer
-        CStream* pstream; //pointer to the Stream
-        unsigned int frame_size;
-        t_frame_type frame_type;
-        t_stream_pos     stream_pos;
-        t_uint32    cframe; // frame counter as issued by framer
-        int   vcid;
-        int   scid;
-        int   crc_ok;
-        int   bit_errors;
-        time_t    wctime; // seconds, unix epoch
-        long int  wctime_usec;
-        time_t    actime;
-        long int  actime_usec;
-        time_t    obtime;
-        long int  obtime_usec;
+        BYTE* pdata;       //pointer to the frame data buffer
+        CStream* pstream;  //pointer to the Stream
+        unsigned int frame_size; // frame size
+        t_frame_type frame_type; // frame type
+        t_stream_pos stream_pos; //position of the frame in the stream
+           t_uint32  cframe;    // frame counter as issued by framer
+                int  vcid;      // channel ID (VCID,APID,etc)
+                int  scid;      // spacecraft or source ID
+                int  crc_ok;    // frame passed error correction
+                int  bit_errors; //bit errors estimation
+             time_t  wctime;     //wall clock time, seconds, unix epoch
+           long int  wctime_usec;
+             time_t  actime;     //acquisition clock time, seconds, unix epoch
+           long int  actime_usec;
+             time_t  obtime;     //on-board clock time, seconds, unix epoch
+           long int  obtime_usec;
 
 };
 
@@ -134,7 +135,7 @@ class CChain
     public:
 };
 
-class INode   // chain node interface class, to be inherited by all the nodes
+class INode   // chain node interface class, 
 {
     public:
         INode();
@@ -142,10 +143,11 @@ class INode   // chain node interface class, to be inherited by all the nodes
         //
         string name;
         string id;
-        INode* pnext_node;
         bool is_initialized;
+        INode* pnext_node;  //-> ref. to next Node  
         //state control methods
-        virtual bool init(t_ini& ini, string& name, CChain* pchain);
+        virtual bool init(t_ini& ini, string& name, 
+                          CChain* pchain);
         virtual void start(void);
         virtual void stop(void);
         virtual void close(void);
@@ -153,9 +155,6 @@ class INode   // chain node interface class, to be inherited by all the nodes
         virtual void take_frame(CFrame* pf);
     protected:
         CChain* pchain;
-    private:
-
-
 };
 
 class IInputStream   // chain node interface class, to be inherited by all the nodes

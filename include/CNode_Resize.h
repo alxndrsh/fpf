@@ -3,24 +3,24 @@ FPF - Frame Processing Framework
 See the file COPYING for copying permission.
 */
 /*
-CNode_Counter - simple counter of passing through frames
+CNode_Resize - change size (cut or extend) of passes frame
 
 History:
-    created: 2015-11 - A.Shumilin.
+    created: 2019-04 - A.Shumilin.
 */
 
-#ifndef CNODE_COUNTER_H
-#define CNODE_COUNTER_H
+#ifndef CNODE_RESIZE_H
+#define CNODE_RESIZE_H
 
 #include "fpf.h"
 
-#define  FACTORY_CNODE_COUNTER(c) FACTORY_ADD_NODE(c,CNode_Counter)
+#define  FACTORY_CNODE_RESIZE(c) FACTORY_ADD_NODE(c,CNode_Resize)
 
-class CNode_Counter : public INode
+class CNode_Resize : public INode
 {
     public:
-        CNode_Counter();
-        virtual ~CNode_Counter();
+        CNode_Resize();
+        virtual ~CNode_Resize();
         //INode
         bool init(t_ini& ini, string& name, CChain* chain);
         void start(void);
@@ -28,13 +28,14 @@ class CNode_Counter : public INode
         void close(void);
         void take_frame(CFrame* pf);
     protected:
+		
     private:
-        unsigned long c_counter;
-        unsigned long trace_every;
+        unsigned int new_frame_size;
         bool done_warnings_init;
-
+        int c_counter;
+		BYTE* p_frame_buff;
         //
         void do_frame_processing(CFrame* pf);
 };
 
-#endif // CNODE_COUNTER_H
+#endif // CNODE_RESIZE_H
