@@ -12,7 +12,7 @@ CNode_APIDlist -  assemble a unique list of apids and their counts found in a st
 
 #include "fpf.h"
 
-#define  FACTORY_CNODE_Template(c) FACTORY_ADD_NODE(c,CNode_APIDlist)
+#define  FACTORY_CNODE_APIDLIST(c) FACTORY_ADD_NODE(c,CNode_APIDlist)
 
 struct apid_linked_t {
     int apid;
