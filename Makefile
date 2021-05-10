@@ -184,7 +184,7 @@ $(OBJDIR_RELEASE)/src/CNode_EOSinv.o: src/CNode_EOSinv.cpp
 	$(CXX) $(CFLAGS_RELEASE) $(INC_RELEASE) -c src/CNode_EOSinv.cpp -o $(OBJDIR_RELEASE)/src/CNode_EOSinv.o
 
 $(OBJDIR_RELEASE)/src/CNode_Resize.o: src/CNode_Resize.cpp
-	$(CXX) $(CFLAGS_DEBUG) $(INC_DEBUG) -c src/CNode_Resize.cpp -o $(OBJDIR_DEBUG)/src/CNode_Resize.o
+	$(CXX) $(CFLAGS_DEBUG) $(INC_RELEASE) -c src/CNode_Resize.cpp -o $(OBJDIR_RELEASE)/src/CNode_Resize.o
 	
 $(OBJDIR_RELEASE)/src/CNode_FileWriter.o: src/CNode_FileWriter.cpp
 	$(CXX) $(CFLAGS_RELEASE) $(INC_RELEASE) -c src/CNode_FileWriter.cpp -o $(OBJDIR_RELEASE)/src/CNode_FileWriter.o
