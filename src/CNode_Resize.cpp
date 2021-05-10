@@ -3,57 +3,59 @@ FPF - Frame Processing Framework
 See the file COPYING for copying permission.
 */
 /*
-CNode_Counter - simple counter of passing through frames
+CNode_Resize - change size of  passed frames
 
 History:
-    created: 2015-11 - A.Shumilin.
+    created: 2019-04 - A.Shumilin.
 */
-#include <cstdlib> /* atoi */
-#include <iomanip>  /* setw */
 
 #include "ini.h"
-#include "CNode_Counter.h"
+
 #include "class_factory.h"
+#include "CNode_Resize.h"
 
+#include <string.h>  //memcpy,memset
 
-#define MY_CLASS_NAME   "CNode_Counter"
+#define MY_CLASS_NAME   "CNode_Resize"
 
 // INI tags
-#define INI_TRACE_EVERY     "trace_every"
+#define INI_FRAME_SIZE     "frame_size"
 
-CNode_Counter::CNode_Counter()
+CNode_Resize::CNode_Resize()
 {
     is_initialized = false;
     pnext_node = NULL;
+    new_frame_size = 0;
     c_counter = 0;
-    trace_every = 0; //no tracing
+    p_frame_buff = NULL;
     done_warnings_init = false;
 }
 
-CNode_Counter::~CNode_Counter()
+CNode_Resize::~CNode_Resize()
 {
-    if (pnext_node != NULL) { *fpf_warn<<"!! CNode_Counter::~CNode_Counter(): not detached next node"; }
+	if (p_frame_buff != NULL) { delete p_frame_buff; p_frame_buff = NULL; }
+    if (pnext_node != NULL) { *fpf_warn<<"!! CNode_Resize::~CNode_Resize(): not detached next node"; }
 }
 
-bool CNode_Counter::init(t_ini& ini, string& init_name, CChain* pchain_arg)
+bool CNode_Resize::init(t_ini& ini, string& init_name, CChain* pchain_arg)
 {
      *fpf_debug << "~ " MY_CLASS_NAME "::init("<<init_name<<")\n";
-    c_counter = 0;
     done_warnings_init = false;
     pchain = pchain_arg;
     is_initialized = false;
+    c_counter = 0;
     //
     t_ini_section conf = ini[init_name];
     name = init_name;
     id = name;
-    //build next not
+    //build next node
     bool no_next_node;
     pnext_node = get_next_node(ini,name,&no_next_node);
 	if (pnext_node == NULL)
 	{
 		if (!no_next_node) //look like a config error
 		{
-			*fpf_error << "ERROR: CNode_Counter::init("<<init_name<<") failed to create next node ["<< conf[INI_COMMON_NEXT_NODE] <<"]\n";
+			*fpf_error << "ERROR: CNode_Resize::init("<<init_name<<") failed to create next node ["<< conf[INI_COMMON_NEXT_NODE] <<"]\n";
 			return false;
 		}
 	}
@@ -62,22 +64,22 @@ bool CNode_Counter::init(t_ini& ini, string& init_name, CChain* pchain_arg)
             if (! pnext_node->init(ini,conf[INI_COMMON_NEXT_NODE],pchain_arg))  { return false;}
     }
     //
-    trace_every = atoi(conf[INI_TRACE_EVERY].c_str());
+    new_frame_size = atoi(conf[INI_FRAME_SIZE].c_str());
     //
-    *fpf_trace<<"=> " MY_CLASS_NAME "::init("<<name<<") initialized\n";
+    *fpf_trace<<"=> " MY_CLASS_NAME "::init("<<name<<") initialized with frame_size="<<new_frame_size<<"\n";
     is_initialized = true;
     return true;
 }
 
-void CNode_Counter::start(void)
+void CNode_Resize::start(void)
 {
 }
 
-void CNode_Counter::stop(void)
+void CNode_Resize::stop(void)
 {
 }
 
-void CNode_Counter::close(void)
+void CNode_Resize::close(void)
 {
     if (pnext_node != NULL)
     {
@@ -90,7 +92,7 @@ void CNode_Counter::close(void)
     *fpf_trace<<"<= " MY_CLASS_NAME "("<<name<<") closed.  Counted frames: "<<c_counter<<"\n";
 }
 
-void CNode_Counter::take_frame(CFrame* pf)
+void CNode_Resize::take_frame(CFrame* pf)
 {
     FPF_ASSERT( (pf!= NULL),"NULL frame pointer")
     FPF_ASSERT(is_initialized,"Node not initialized")
@@ -103,15 +105,20 @@ void CNode_Counter::take_frame(CFrame* pf)
 
 
 
-void CNode_Counter::do_frame_processing(CFrame* pf)
+void CNode_Resize::do_frame_processing(CFrame* pf)
 {
     //increment the counter
     c_counter++;
     //-- do tracing
-    if (trace_every == 0) { return;} //no tracing at all
-    if ((trace_every == 1)
-        || (c_counter % trace_every == 0))
-    {
-        cout<<"Counter::"<<name<<" ="<<setw(8)<<right<<c_counter<<endl;
-    }
+	if (pf->frame_size < new_frame_size)  // need to copy content to own buffer
+	{
+		if (p_frame_buff == NULL)
+		{//allocate extended frame buffer
+			p_frame_buff = new BYTE[new_frame_size];
+			memset(p_frame_buff,0,new_frame_size);
+		}
+		memcpy(pf->pdata,p_frame_buff,pf->frame_size);
+		pf->pdata = p_frame_buff;
+	}
+	pf->frame_size = new_frame_size; // regardless size relation 
 }

@@ -34,6 +34,7 @@ History:
 #include "CNode_Splitter.h"
 #include "CNode_SCTrigger.h"
 #include "CNode_TFstat.h"
+#include "CNode_Resize.h"
 // inputs
 #include "CInputStream_File.h"
 #include "CInputStream_NetCDF.h"
@@ -88,6 +89,7 @@ INode* new_node(std::string& classname)
         FACTORY_CNODE_SPLITTER(classname);
         FACTORY_CNODE_SCTRIGGER(classname);
         FACTORY_CNODE_TFSTAT(classname);
+        FACTORY_CNODE_RESIZE(classname);
         //protect against infinite loop chaining
         if (++c_objects_number > MAX_NUMBER_OF_OBJECTS)
         {
