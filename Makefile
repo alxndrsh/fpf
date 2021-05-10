@@ -14,7 +14,7 @@ WINDRES = windres
 INC = 
 CFLAGS = -Wall -fexceptions -DHAS_SOCKET_H=1
 RESINC = 
-LIBDIR = 
+LIBDIR =
 LIB = 
 LDFLAGS = 
 
@@ -40,9 +40,9 @@ OBJDIR_RELEASE = obj/Release
 DEP_RELEASE = 
 OUT_RELEASE = bin/Release/fpf
 
-OBJ_DEBUG = $(OBJDIR_DEBUG)/src/CNode_Resize.o $(OBJDIR_DEBUG)/src/CNode_RSSPipe.o $(OBJDIR_DEBUG)/src/CFrameSource_PDS.o $(OBJDIR_DEBUG)/src/CFrameSource_Simulator.o $(OBJDIR_DEBUG)/src/CInputStream_File.o $(OBJDIR_DEBUG)/src/CInputStream_Socket.o $(OBJDIR_DEBUG)/src/CNode_CADUdump.o $(OBJDIR_DEBUG)/src/CNode_Counter.o $(OBJDIR_DEBUG)/src/CNode_Descrambler.o $(OBJDIR_DEBUG)/src/CNode_EOSPdump.o $(OBJDIR_DEBUG)/src/CNode_EOSinv.o $(OBJDIR_DEBUG)/src/CNode_FileWriter.o $(OBJDIR_DEBUG)/src/CNode_PacketExtractor.o $(OBJDIR_DEBUG)/src/CNode_RS.o $(OBJDIR_DEBUG)/src/CFrameSource_CADU.o $(OBJDIR_DEBUG)/src/CNode_SCTrigger.o $(OBJDIR_DEBUG)/src/CNode_Splitter.o $(OBJDIR_DEBUG)/src/CNode_TFstat.o $(OBJDIR_DEBUG)/src/CNode_ZTS.o $(OBJDIR_DEBUG)/src/CNode_template.o $(OBJDIR_DEBUG)/src/ccsds.o $(OBJDIR_DEBUG)/src/class_factory.o $(OBJDIR_DEBUG)/src/decode_rs.o $(OBJDIR_DEBUG)/src/fpf.o $(OBJDIR_DEBUG)/src/fpf_main.o $(OBJDIR_DEBUG)/src/ini.o
+OBJ_DEBUG = $(OBJDIR_DEBUG)/src/CNode_Resize.o $(OBJDIR_DEBUG)/src/CNode_RSSPipe.o $(OBJDIR_DEBUG)/src/CFrameSource_PDS.o $(OBJDIR_DEBUG)/src/CFrameSource_Simulator.o $(OBJDIR_DEBUG)/src/CInputStream_File.o $(OBJDIR_DEBUG)/src/CInputStream_Socket.o $(OBJDIR_DEBUG)/src/CNode_APIDlist.o $(OBJDIR_DEBUG)/src/CNode_CADUdump.o $(OBJDIR_DEBUG)/src/CNode_Counter.o $(OBJDIR_DEBUG)/src/CNode_Descrambler.o $(OBJDIR_DEBUG)/src/CNode_EOSPdump.o $(OBJDIR_DEBUG)/src/CNode_EOSinv.o $(OBJDIR_DEBUG)/src/CNode_FileWriter.o $(OBJDIR_DEBUG)/src/CNode_PacketExtractor.o $(OBJDIR_DEBUG)/src/CNode_RS.o $(OBJDIR_DEBUG)/src/CFrameSource_CADU.o $(OBJDIR_DEBUG)/src/CNode_SCTrigger.o $(OBJDIR_DEBUG)/src/CNode_Splitter.o $(OBJDIR_DEBUG)/src/CNode_TFstat.o $(OBJDIR_DEBUG)/src/CNode_ZTS.o $(OBJDIR_DEBUG)/src/CNode_template.o $(OBJDIR_DEBUG)/src/ccsds.o $(OBJDIR_DEBUG)/src/class_factory.o $(OBJDIR_DEBUG)/src/decode_rs.o $(OBJDIR_DEBUG)/src/fpf.o $(OBJDIR_DEBUG)/src/fpf_main.o $(OBJDIR_DEBUG)/src/ini.o
 
-OBJ_RELEASE = $(OBJDIR_RELEASE)/src/CNode_Resize.o $(OBJDIR_RELEASE)/src/CNode_RSSPipe.o $(OBJDIR_RELEASE)/src/CFrameSource_PDS.o $(OBJDIR_RELEASE)/src/CFrameSource_Simulator.o $(OBJDIR_RELEASE)/src/CInputStream_File.o $(OBJDIR_RELEASE)/src/CInputStream_Socket.o $(OBJDIR_RELEASE)/src/CNode_CADUdump.o $(OBJDIR_RELEASE)/src/CNode_Counter.o $(OBJDIR_RELEASE)/src/CNode_Descrambler.o $(OBJDIR_RELEASE)/src/CNode_EOSPdump.o $(OBJDIR_RELEASE)/src/CNode_EOSinv.o $(OBJDIR_RELEASE)/src/CNode_FileWriter.o $(OBJDIR_RELEASE)/src/CNode_PacketExtractor.o $(OBJDIR_RELEASE)/src/CNode_RS.o $(OBJDIR_RELEASE)/src/CFrameSource_CADU.o $(OBJDIR_RELEASE)/src/CNode_SCTrigger.o $(OBJDIR_RELEASE)/src/CNode_Splitter.o $(OBJDIR_RELEASE)/src/CNode_TFstat.o $(OBJDIR_RELEASE)/src/CNode_ZTS.o $(OBJDIR_RELEASE)/src/CNode_template.o $(OBJDIR_RELEASE)/src/ccsds.o $(OBJDIR_RELEASE)/src/class_factory.o $(OBJDIR_RELEASE)/src/decode_rs.o $(OBJDIR_RELEASE)/src/fpf.o $(OBJDIR_RELEASE)/src/fpf_main.o $(OBJDIR_RELEASE)/src/ini.o
+OBJ_RELEASE = $(OBJDIR_RELEASE)/src/CNode_Resize.o $(OBJDIR_RELEASE)/src/CNode_RSSPipe.o $(OBJDIR_RELEASE)/src/CFrameSource_PDS.o $(OBJDIR_RELEASE)/src/CFrameSource_Simulator.o $(OBJDIR_RELEASE)/src/CInputStream_File.o $(OBJDIR_RELEASE)/src/CInputStream_Socket.o $(OBJDIR_RELEASE)/src/CNode_APIDlist.o $(OBJDIR_RELEASE)/src/CNode_CADUdump.o $(OBJDIR_RELEASE)/src/CNode_Counter.o $(OBJDIR_RELEASE)/src/CNode_Descrambler.o $(OBJDIR_RELEASE)/src/CNode_EOSPdump.o $(OBJDIR_RELEASE)/src/CNode_EOSinv.o $(OBJDIR_RELEASE)/src/CNode_FileWriter.o $(OBJDIR_RELEASE)/src/CNode_PacketExtractor.o $(OBJDIR_RELEASE)/src/CNode_RS.o $(OBJDIR_RELEASE)/src/CFrameSource_CADU.o $(OBJDIR_RELEASE)/src/CNode_SCTrigger.o $(OBJDIR_RELEASE)/src/CNode_Splitter.o $(OBJDIR_RELEASE)/src/CNode_TFstat.o $(OBJDIR_RELEASE)/src/CNode_ZTS.o $(OBJDIR_RELEASE)/src/CNode_template.o $(OBJDIR_RELEASE)/src/ccsds.o $(OBJDIR_RELEASE)/src/class_factory.o $(OBJDIR_RELEASE)/src/decode_rs.o $(OBJDIR_RELEASE)/src/fpf.o $(OBJDIR_RELEASE)/src/fpf_main.o $(OBJDIR_RELEASE)/src/ini.o
 
 all: debug release
 
@@ -73,6 +73,9 @@ $(OBJDIR_DEBUG)/src/CInputStream_File.o: src/CInputStream_File.cpp
 
 $(OBJDIR_DEBUG)/src/CInputStream_Socket.o: src/CInputStream_Socket.cpp
 	$(CXX) $(CFLAGS_DEBUG) $(INC_DEBUG) -c src/CInputStream_Socket.cpp -o $(OBJDIR_DEBUG)/src/CInputStream_Socket.o
+
+$(OBJDIR_DEBUG)/src/CNode_APIDlist.o: src/CNode_APIDlist.cpp
+	$(CXX) $(CFLAGS_DEBUG) $(INC_DEBUG) -c src/CNode_APIDlist.cpp -o $(OBJDIR_DEBUG)/src/CNode_APIDlist.o
 
 $(OBJDIR_DEBUG)/src/CNode_CADUdump.o: src/CNode_CADUdump.cpp
 	$(CXX) $(CFLAGS_DEBUG) $(INC_DEBUG) -c src/CNode_CADUdump.cpp -o $(OBJDIR_DEBUG)/src/CNode_CADUdump.o
@@ -168,6 +171,9 @@ $(OBJDIR_RELEASE)/src/CInputStream_File.o: src/CInputStream_File.cpp
 $(OBJDIR_RELEASE)/src/CInputStream_Socket.o: src/CInputStream_Socket.cpp
 	$(CXX) $(CFLAGS_RELEASE) $(INC_RELEASE) -c src/CInputStream_Socket.cpp -o $(OBJDIR_RELEASE)/src/CInputStream_Socket.o
 
+$(OBJDIR_RELEASE)/src/CNode_APIDlist.o: src/CNode_APIDlist.cpp
+	$(CXX) $(CFLAGS_RELEASE) $(INC_RELEASE) -c src/CNode_APIDlist.cpp -o $(OBJDIR_RELEASE)/src/CNode_APIDlist.o
+
 $(OBJDIR_RELEASE)/src/CNode_CADUdump.o: src/CNode_CADUdump.cpp
 	$(CXX) $(CFLAGS_RELEASE) $(INC_RELEASE) -c src/CNode_CADUdump.cpp -o $(OBJDIR_RELEASE)/src/CNode_CADUdump.o
 
@@ -184,7 +190,7 @@ $(OBJDIR_RELEASE)/src/CNode_EOSinv.o: src/CNode_EOSinv.cpp
 	$(CXX) $(CFLAGS_RELEASE) $(INC_RELEASE) -c src/CNode_EOSinv.cpp -o $(OBJDIR_RELEASE)/src/CNode_EOSinv.o
 
 $(OBJDIR_RELEASE)/src/CNode_Resize.o: src/CNode_Resize.cpp
-	$(CXX) $(CFLAGS_DEBUG) $(INC_DEBUG) -c src/CNode_Resize.cpp -o $(OBJDIR_DEBUG)/src/CNode_Resize.o
+	$(CXX) $(CFLAGS_DEBUG) $(INC_RELEASE) -c src/CNode_Resize.cpp -o $(OBJDIR_RELEASE)/src/CNode_Resize.o
 	
 $(OBJDIR_RELEASE)/src/CNode_FileWriter.o: src/CNode_FileWriter.cpp
 	$(CXX) $(CFLAGS_RELEASE) $(INC_RELEASE) -c src/CNode_FileWriter.cpp -o $(OBJDIR_RELEASE)/src/CNode_FileWriter.o

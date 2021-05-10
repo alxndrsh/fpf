@@ -397,6 +397,11 @@ one should specify this parameter explicitly ( *obt_epoch=946684800" ).
 
  
 
+#### CNode_APIDlist
+
+*CNode_APIDlist* processing node creates a list of the unique APIDs observed in the
+stream and the count of each. On close, it will print a summary of apids and counts.
+
 
 
 

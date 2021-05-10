@@ -22,6 +22,7 @@ History:
 
 
 //Nodes
+#include "CNode_APIDlist.h"
 #include "CNode_Counter.h"
 #include "CNode_Descrambler.h"
 #include "CNode_CADUdump.h"
@@ -76,6 +77,7 @@ INode* new_node(std::string& classname)
             return NULL;
         }
         //// ----- add new node classes here-------------
+        FACTORY_CNODE_APIDLIST(classname);
         FACTORY_CNODE_COUNTER(classname);
         FACTORY_CNODE_DESCRAMBLER(classname);
         FACTORY_CNODE_CADUDUMP(classname);
