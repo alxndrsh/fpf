@@ -18,6 +18,7 @@ History:
 #include <iostream>
 #include <stdexcept>
 #include <stdint.h>
+#include <stdlib.h>
 //
 #include "ini.h"
 

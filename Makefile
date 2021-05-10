@@ -14,7 +14,7 @@ WINDRES = windres
 INC = 
 CFLAGS = -Wall -fexceptions -DHAS_SOCKET_H=1
 RESINC = 
-LIBDIR = 
+LIBDIR =
 LIB = 
 LDFLAGS = 
 
