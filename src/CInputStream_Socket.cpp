@@ -4,6 +4,8 @@
 #include <cerrno>
 #include <sys/types.h>
 
+#ifndef NO_SOCKETS
+
 #ifdef HAS_WINSOCK
 #include <winsock2.h>
  
@@ -268,3 +270,5 @@ void CInputStream_Socket::build_names() //resolve id and url, call delayed till 
     make_substitutions(id, &subs_map,'%');
     make_substitutions(url, &subs_map,'%');
 }
+
+#endif //NO_SOCKETS

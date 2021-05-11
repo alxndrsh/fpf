@@ -289,6 +289,15 @@ will stop growing. So if not intended to be used with growing in real time files
 it is better to keep this parameter set to "no", otherwise some unnecessary
 delay will be introduced at the end of file reading.
 
+#### InputStream_NetCDF
+
+InputStream_NetCDF is used to read an input bit stream from a NetCDF Variable.
+
+Parameters:
+ - *file_name* - NetCDF filename to open.
+ - *netcdf_variable* - A 1 dimensional Variable to read and interpret as a 
+sequence of bytes.
+
 ### Frame processing nodes
 
 #### CNode_Counter
@@ -396,6 +405,11 @@ is 01-Jan-2000, thus processing data from these satellites for correct time stam
 one should specify this parameter explicitly ( *obt_epoch=946684800" ).
 
  
+
+#### CNode_APIDlist
+
+*CNode_APIDlist* processing node creates a list of the unique APIDs observed in the
+stream and the count of each. On close, it will print a summary of apids and counts.
 
 
 

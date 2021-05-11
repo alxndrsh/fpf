@@ -22,6 +22,7 @@ History:
 
 
 //Nodes
+#include "CNode_APIDlist.h"
 #include "CNode_Counter.h"
 #include "CNode_Descrambler.h"
 #include "CNode_CADUdump.h"
@@ -37,6 +38,7 @@ History:
 #include "CNode_Resize.h"
 // inputs
 #include "CInputStream_File.h"
+#include "CInputStream_NetCDF.h"
 #include "CInputStream_Socket.h"
 
 
@@ -76,6 +78,7 @@ INode* new_node(std::string& classname)
             return NULL;
         }
         //// ----- add new node classes here-------------
+        FACTORY_CNODE_APIDLIST(classname);
         FACTORY_CNODE_COUNTER(classname);
         FACTORY_CNODE_DESCRAMBLER(classname);
         FACTORY_CNODE_CADUDUMP(classname);
@@ -167,6 +170,7 @@ IInputStream* new_input_stream(std::string& classname)
 
         //// ----- add new node classes here-------------
         FACTORY_CINPUTSTREAM_FILE(classname)
+        FACTORY_CINPUTSTREAM_NETCDF(classname)
         FACTORY_CINPUTSTREAM_SOCKET(classname)
 
         // invalid class requested if reached this point

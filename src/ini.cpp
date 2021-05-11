@@ -56,7 +56,7 @@ void parse_to_string_vector(vector<string> *V, string& str)
     while (pch != NULL)
     {
         V->push_back(string(pch));
-        pch = strtok (NULL, " ,.-");
+        pch = strtok (NULL, " ,");
     }
     free(dup);
 }
