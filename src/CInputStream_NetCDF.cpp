@@ -151,22 +151,17 @@ unsigned int CInputStream_NetCDF::read(BYTE* pbuff, size_t read_bytes, int& ierr
     //
     // remaining to read is (dimlen - file_pos), can read up to read_bytes
     size_t read_count = std::min(file_len - file_pos, read_bytes);
-    if (read_count == 0 && file_names.size() == 0) {
-        // nothing left to read, no more files
+
+    if (file_pos == file_len && file_names.size() > 0) {
+        prepare_read();
+        read_count = std::min(file_len - file_pos, read_bytes);
+    }
+
+    if (file_pos == file_len && file_names.size() == 0) {
+        // nothing left to read, and no more files
         ierror = 0;
         return 0;
-    } else if (file_names.size() > 0) {
-        do {
-            // more files in the list of files to read... go to the next one.
-            prepare_read();
-            read_count = std::min(file_len - file_pos, read_bytes);
-        } while (file_names.size() > 0 && read_count == 0);
-        if (read_count == 0) {
-            // final escape, no more files.
-            ierror = 0;
-            return 0;
-        }
-    }
+    };
 
     FPF_ASSERT((ncid >= 0),"CInputStream_NetCDF::read, netcdf not opened");
 
