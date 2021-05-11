@@ -27,8 +27,8 @@ CInputStream_NetCDF::CInputStream_NetCDF() {
     ncid = -1;
     varid = -1;
     url = "";
-    stream_pos = 0;
-    stream_len = 0;
+    file_pos = 0;
+    file_len = 0;
     read_total = 0;
 }
 
@@ -64,8 +64,8 @@ bool CInputStream_NetCDF::init(t_ini& ini, string& init_name) {
     }
 
     read_total = 0;  // total read, of all netcdf inputs.
-    stream_pos = 0;  // how far through particular netcdf
-    stream_len = 0;  // total size of the particular netcdf
+    file_pos = 0;  // how far through particular netcdf
+    file_len = 0;  // total size of the particular netcdf
     is_initialized = true;
 
     return true;
@@ -85,8 +85,8 @@ void CInputStream_NetCDF::prepare_read(void) {
     if (ncid >= 0) { nc_close(ncid); ncid = -1;}
     file_name = file_names.back();
     file_names.pop_back();
-    stream_pos = 0;
-    stream_len = 0;
+    file_pos = 0;
+    file_len = 0;
 
     //-- open input netcdf file: 
     // https://www.unidata.ucar.edu/software/netcdf/docs/group__datasets.html#ga44b4199fe8cabca419e1cf5f3a169353
@@ -118,7 +118,7 @@ void CInputStream_NetCDF::prepare_read(void) {
         return;
     }
 
-    // get the size of the dimension, will have to read from stream_pos up to
+    // get the size of the dimension, will have to read from file_pos up to
     // either read_bytes or dims_size, whichever is smaller.
     int dimid;
     status = nc_inq_vardimid(ncid, varid, &dimid);
@@ -136,7 +136,7 @@ void CInputStream_NetCDF::prepare_read(void) {
     }
     
     // successful open...
-    stream_len = dimlen;
+    file_len = dimlen;
     
 }
 
@@ -149,8 +149,8 @@ unsigned int CInputStream_NetCDF::read(BYTE* pbuff, size_t read_bytes, int& ierr
     // If there is no more to read, but there are more files, go to the next file.
     // Only when there are no more files and nothing to read is this done.
     //
-    // remaining to read is (dimlen - stream_pos), can read up to read_bytes
-    size_t read_count = std::min(stream_len - stream_pos, read_bytes);
+    // remaining to read is (dimlen - file_pos), can read up to read_bytes
+    size_t read_count = std::min(file_len - file_pos, read_bytes);
     if (read_count == 0 && file_names.size() == 0) {
         // nothing left to read, no more files
         ierror = 0;
@@ -159,7 +159,7 @@ unsigned int CInputStream_NetCDF::read(BYTE* pbuff, size_t read_bytes, int& ierr
         do {
             // more files in the list of files to read... go to the next one.
             prepare_read();
-            read_count = std::min(stream_len - stream_pos, read_bytes);
+            read_count = std::min(file_len - file_pos, read_bytes);
         } while (file_names.size() > 0 && read_count == 0);
         if (read_count == 0) {
             // final escape, no more files.
@@ -170,7 +170,7 @@ unsigned int CInputStream_NetCDF::read(BYTE* pbuff, size_t read_bytes, int& ierr
 
     FPF_ASSERT((ncid >= 0),"CInputStream_NetCDF::read, netcdf not opened");
 
-    size_t start[] = {stream_pos};
+    size_t start[] = {file_pos};
     size_t count[] = {read_count};
     int status = nc_get_vara(ncid, varid, start, count, pbuff);
     if ( status != NC_NOERR) {
@@ -181,9 +181,9 @@ unsigned int CInputStream_NetCDF::read(BYTE* pbuff, size_t read_bytes, int& ierr
     }
         
     read_total += read_count;
-    stream_pos += read_count;
+    file_pos += read_count;
     ierror = 0;
-    *fpf_trace << "NETCDF returning << " << count[0] << ", start: " << start[0] << ", stream_pos: " << stream_pos << "\n" ;
+    *fpf_trace << "NETCDF returning << " << count[0] << ", start: " << start[0] << ", file_pos: " << file_pos << "\n" ;
     return read_count;
 }
 

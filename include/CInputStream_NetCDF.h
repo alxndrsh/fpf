@@ -45,7 +45,8 @@ class CInputStream_NetCDF : public IInputStream
         int ncid;
         int varid;
         size_t read_total;
-        size_t stream_len;
+        size_t file_len;
+        size_t file_pos;
         string nc_var_name;
 };
 
