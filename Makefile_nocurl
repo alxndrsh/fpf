@@ -15,10 +15,10 @@ LD = g++
 WINDRES = windres
 
 INC = 
-CFLAGS = -Wall -fexceptions
+CFLAGS = -Wall -fexceptions -DUSE_NETCDF=1
 RESINC = 
 LIBDIR =
-LIB = 
+LIB = -lnetcdf
 LDFLAGS = 
 
 INC_DEBUG = $(INC) -Iinclude
