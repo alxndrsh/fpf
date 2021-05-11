@@ -65,11 +65,11 @@ void CNode_APIDlist::close(void)
 {
     if (pnext_node != NULL)   {  pnext_node->close();   delete pnext_node;   pnext_node = NULL;   }
     is_initialized = false;
-    *fpf_trace<<"<= " MY_CLASS_NAME "e("<<name<<") closed, "<<c_counter<<" frames passed\n";
-    *fpf_trace<<"<= " MY_CLASS_NAME "e("<<name<<") summary:\n";
+    *fpf_trace<<"<= " MY_CLASS_NAME "("<<name<<") closed, "<<c_counter<<" frames passed\n";
+    cout<<"<= " MY_CLASS_NAME "("<<name<<") summary:\n";
     apid_linked_t *current_apid = apid_linked_head, *prev_apid = NULL;
     while (current_apid != NULL) {
-        *fpf_trace<<"<= " MY_CLASS_NAME "e("<<name<<") apid "<<current_apid->apid<<": "<<current_apid->count<<":\n";
+        cout<<"<= " MY_CLASS_NAME "("<<name<<") count apid "<<current_apid->apid<<":"<<current_apid->count<<"\n";
         prev_apid = current_apid;  
         current_apid = current_apid->pnext_apid;
         delete prev_apid;
@@ -99,7 +99,7 @@ void CNode_APIDlist::do_frame_processing(CFrame* pf)
         current_apid = &(*current_apid)->pnext_apid;
     }
 
-    if (current_apid == NULL) {
+    if ((*current_apid) == NULL) {
         apid_linked_t *new_apid = (apid_linked_t*)calloc(1, sizeof(apid_linked_t));
         new_apid->apid = pf->vcid;
         *current_apid = new_apid;
