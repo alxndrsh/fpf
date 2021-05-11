@@ -44,7 +44,7 @@ class CInputStream_NetCDF : public IInputStream
         std::string file_name;  // string name of current file being read
         int ncid;
         int varid;
-        size_t  read_total;
+        size_t read_total;
         size_t stream_len;
         string nc_var_name;
 };
